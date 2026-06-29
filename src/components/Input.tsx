@@ -12,6 +12,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTe
   error?: string;
   multiline?: boolean;
   icon?: React.ReactNode;
+  onIconClick?: () => void;
 }
 
 export default function Input({
@@ -19,6 +20,7 @@ export default function Input({
   error,
   multiline = false,
   icon,
+  onIconClick,
   className,
   ...props
 }: InputProps) {
@@ -26,10 +28,9 @@ export default function Input({
     "w-full border border-zinc-200 rounded-lg px-4 py-2.5 outline-none focus:border-black transition-colors placeholder:text-zinc-300 text-sm",
     error && "border-red-500 focus:border-red-500",
     multiline && "min-h-[100px] resize-none",
-    icon && "pr-12",
+    icon && !multiline && "pr-11",
     className
   );
-
   const labelStyles = "block text-[10px] font-bold uppercase text-zinc-400 mb-1 tracking-widest";
 
   return (
@@ -42,11 +43,17 @@ export default function Input({
           <input className={inputStyles} {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />
         )}
         {icon && (
-          <div className="absolute inset-y-0 right-4 flex items-center text-zinc-400 pointer-events-none">
+          <div 
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 right-4 flex items-center text-zinc-400",
+              onIconClick ? "cursor-pointer hover:text-black transition-colors" : "pointer-events-none"
+            )}
+            onClick={onIconClick}
+          >
             {icon}
           </div>
-        )}
-      </div>
+        )}      </div>
       {error && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{error}</p>}
     </div>
-  );}
+  );
+}

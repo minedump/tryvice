@@ -4,18 +4,22 @@ import React from 'react';
 import { useShop } from '@/context/ShopContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { IconChevronDown, IconBuildingStore, IconUserCircle } from '@tabler/icons-react';
+import { IconChevronDown, IconBuildingStore } from '@tabler/icons-react';
+import Logo from '@/components/Logo';
 
 export default function Header() {
   const router = useRouter();
   const { shops, currentShop, setCurrentShop } = useShop();
-  const { isSuperAdmin, user } = useAuth();
+  const { isSuperAdmin } = useAuth();
 
   return (
-    <header className="h-16 border-b border-zinc-200 bg-white flex items-center justify-between px-4 sticky top-0 z-30">
+    <header className="h-16 border-b border-zinc-200 bg-white flex items-center justify-between px-8 sticky top-0 z-30">
       {/* Логотип */}
-      <div className="flex items-center">
-        <span className="text-xl font-black tracking-tighter">TRYVICE</span>
+      <div className="flex items-center gap-2">
+        <Logo className="h-4 w-auto text-black" />
+        {isSuperAdmin && (
+          <span className="text-[10px] bg-black text-white px-1.5 py-0.5 rounded font-bold ml-1">ADMIN</span>
+        )}
       </div>
 
       {/* Правая часть */}

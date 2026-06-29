@@ -17,6 +17,7 @@ import {
 import LogoutButton from '@/components/LogoutButton';
 import { useShop } from '@/context/ShopContext';
 import { useAuth } from '@/context/AuthContext';
+import Logo from '@/components/Logo';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -31,9 +32,9 @@ export default function Sidebar() {
     <aside className="w-72 bg-white border-r border-zinc-200 flex flex-col">
       <div className="p-6 border-b border-zinc-100">
         {isSuperAdmin ? (
-          <h1 className="text-xl font-bold tracking-tighter">
-            TRYVICE <span className="text-[10px] bg-black text-white px-1.5 py-0.5 rounded ml-1">ADMIN</span>
-          </h1>
+          <div className="py-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Панель управления</span>
+          </div>
         ) : (
           <>
             <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Текущий магазин</div>

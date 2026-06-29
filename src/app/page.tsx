@@ -5,10 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
+import Logo from '@/components/Logo';
+import { translateError } from '@/lib/error-translator';
+import { IconEye, IconEyeOff } from '@tabler/icons-react';
 
 export default function RootPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +62,7 @@ export default function RootPage() {
     });
 
     if (authError) {
-      setError('Неверный email или пароль');
+      setError(translateError(authError.message));
       setLoading(false);
       return;
     }
@@ -91,8 +95,8 @@ export default function RootPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50">
       <div className="max-w-md w-full bg-white rounded-2xl border border-zinc-200 p-10">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tighter">TRYVICE</h1>
-          <p className="text-zinc-500 mt-2 text-sm">Войдите в систему</p>
+          <Logo className="h-6 w-auto mx-auto text-black mb-4" />
+          <p className="text-zinc-500 text-sm">Войдите в систему</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -125,10 +129,12 @@ export default function RootPage() {
           />
           <Input
             label="Пароль"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            icon={showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+            onIconClick={() => setShowPassword(!showPassword)}
           />
           <Button
             type="submit"

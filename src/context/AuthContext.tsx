@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', user.id)
           .single();
         
-        setIsSuperAdmin(profile?.role === 'superadmin');
+        setIsSuperAdmin(profile?.role === 'admin');
       }
       
       setLoading(false);

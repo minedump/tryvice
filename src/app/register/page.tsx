@@ -7,10 +7,15 @@ import Link from 'next/link';
 import Toast from '@/components/Toast';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
+import Logo from '@/components/Logo';
+import { translateError } from '@/lib/error-translator';
+import { IconEye, IconEyeOff } from '@tabler/icons-react';
 
 function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +39,12 @@ function RegisterForm() {
     setLoading(true);
     setError(null);
 
+    if (password !== confirmPassword) {
+      setError('Пароли не совпадают');
+      setLoading(false);
+      return;
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -43,11 +54,7 @@ function RegisterForm() {
     });
 
     if (authError) {
-      if (authError.message.includes('rate limit')) {
-        setError('Слишком много попыток. Пожалуйста, подождите некоторое время или попробуйте позже.');
-      } else {
-        setError(authError.message);
-      }
+      setError(translateError(authError.message));
       setLoading(false);
       return;
     }
@@ -80,8 +87,8 @@ function RegisterForm() {
   return (
     <div className="max-w-md w-full bg-white rounded-2xl border border-zinc-200 p-10">
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold tracking-tighter">TRYVICE</h1>
-        <p className="text-zinc-500 mt-2 text-sm">Создайте аккаунт клиента</p>
+        <Logo className="h-6 w-auto mx-auto text-black mb-4" />
+        <p className="text-zinc-500 text-sm">Создайте аккаунт клиента</p>
       </div>
 
       <form onSubmit={handleRegister} className="space-y-5">
@@ -91,7 +98,7 @@ function RegisterForm() {
           </div>
         )}
         <Input
-          label="Ваше имя"
+          label="Имя"
           type="text"
           required
           value={fullName}
@@ -106,11 +113,23 @@ function RegisterForm() {
         />
         <Input
           label="Пароль"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           required
           minLength={6}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          icon={showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+          onIconClick={() => setShowPassword(!showPassword)}
+        />
+        <Input
+          label="Подтверждение пароля"
+          type={showPassword ? 'text' : 'password'}
+          required
+          minLength={6}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          icon={showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+          onIconClick={() => setShowPassword(!showPassword)}
         />
         <Button
           type="submit"
