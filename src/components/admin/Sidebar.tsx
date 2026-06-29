@@ -1,0 +1,96 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
+import {
+  IconLayoutDashboard,
+  IconShirt,
+  IconHistory,
+  IconChartBar,
+  IconSettings,
+  IconUsers,
+  IconPrompt,
+  IconCreditCard,
+  IconUserCircle
+} from '@tabler/icons-react';
+import LogoutButton from '@/components/LogoutButton';
+import { useShop } from '@/context/ShopContext';
+import { useAuth } from '@/context/AuthContext';
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { currentShop } = useShop();
+  const { isSuperAdmin } = useAuth();
+
+  const isCreatingNew = pathname === '/admin/settings' && searchParams.get('action') === 'new';
+  const hasActiveShop = !!currentShop && !isCreatingNew;
+
+  return (
+    <aside className="w-72 bg-white border-r border-zinc-200 flex flex-col">
+      <div className="p-6 border-b border-zinc-100">
+        {isSuperAdmin ? (
+          <h1 className="text-xl font-bold tracking-tighter">
+            TRYVICE <span className="text-[10px] bg-black text-white px-1.5 py-0.5 rounded ml-1">ADMIN</span>
+          </h1>
+        ) : (
+          <>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Текущий магазин</div>
+            <div className="text-sm font-bold truncate">
+              {currentShop?.name || 'Не выбран'}
+            </div>
+          </>
+        )}
+      </div>
+
+      <nav className="mt-6 px-4 space-y-1 flex-1">
+        {isSuperAdmin ? (
+          <>
+            <NavLink href="/superadmin/clients" icon={<IconUsers size={22} />} label="Клиенты" active={pathname.startsWith('/superadmin/clients')} />
+            <NavLink href="/superadmin/prompts" icon={<IconPrompt size={22} />} label="Промпты AI" active={pathname.startsWith('/superadmin/prompts')} />
+            <NavLink href="/superadmin/tariffs" icon={<IconCreditCard size={22} />} label="Тарифы" active={pathname.startsWith('/superadmin/tariffs')} />
+          </>
+        ) : (
+          <>
+            {hasActiveShop ? (
+              <>
+                <NavLink href="/admin/dashboard" icon={<IconLayoutDashboard size={22} />} label="Дашборд" active={pathname === '/admin/dashboard'} />
+                <NavLink href="/admin/history" icon={<IconHistory size={22} />} label="История" active={pathname === '/admin/history'} />
+                <NavLink href="/admin/products" icon={<IconShirt size={22} />} label="Товары" active={pathname === '/admin/products'} />
+                <NavLink href="/admin/analytics" icon={<IconChartBar size={22} />} label="Аналитика" active={pathname === '/admin/analytics'} />
+                <NavLink href="/admin/settings" icon={<IconSettings size={22} />} label="Настройки" active={pathname === '/admin/settings'} />
+              </>
+            ) : (
+              <NavLink href="/admin/settings?action=new" icon={<IconSettings size={22} />} label="Создать магазин" active={pathname === '/admin/settings'} />
+            )}
+          </>
+        )}
+      </nav>
+      
+      <div className="px-4 pb-6 space-y-1">
+        <NavLink 
+          href={isSuperAdmin ? "/superadmin/profile" : "/admin/profile"} 
+          icon={<IconUserCircle size={22} />} 
+          label="Профиль" 
+          active={pathname.includes('/profile')} 
+        />
+        <LogoutButton />
+      </div>
+    </aside>
+  );
+}
+
+function NavLink({ href, icon, label, active }: { href: string, icon: any, label: string, active: boolean }) {
+  return (
+    <Link 
+      href={href} 
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+        active ? 'bg-black text-white shadow-lg shadow-black/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-black'
+      }`}
+    >
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+    </Link>
+  );
+}
