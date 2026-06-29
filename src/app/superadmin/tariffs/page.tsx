@@ -128,11 +128,6 @@ export default function TariffsPage() {
               <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">
                 {editingId ? 'Редактирование' : 'Новый тариф'}
               </h3>
-              {editingId && (
-                <button onClick={cancelEdit} className="text-zinc-400 hover:text-zinc-600">
-                  <IconX size={16} />
-                </button>
-              )}
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input 
@@ -167,7 +162,6 @@ export default function TariffsPage() {
               </div>
               <div className="pt-2 space-y-2">
                 <Button type="submit" className="w-full" disabled={saving}>
-                  {editingId ? <IconEdit size={16} /> : <IconPlus size={16} />} 
                   {saving ? 'СОХРАНЕНИЕ...' : (editingId ? 'СОХРАНИТЬ ИЗМЕНЕНИЯ' : 'СОЗДАТЬ ТАРИФ')}
                 </Button>
                 {editingId && (

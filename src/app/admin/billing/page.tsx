@@ -3,16 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useShop } from '@/context/ShopContext';
+import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/Button';
 import Toast from '@/components/Toast';
-import { IconCreditCard, IconHistory, IconPlus, IconCheck } from '@tabler/icons-react';
+import { IconCreditCard, IconHistory, IconPlus, IconCheck, IconBolt } from '@tabler/icons-react';
+
+declare global {
+  interface Window {
+    cp: any;
+  }
+}
 
 export default function BillingPage() {
   const supabase = createClientComponentClient();
   const { currentShop, refreshShops } = useShop();
+  const { isSuperAdmin, user } = useAuth();
   const [tariffs, setTariffs] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<any>(null);
 
   useEffect(() => {
@@ -24,12 +33,15 @@ export default function BillingPage() {
   async function fetchBillingData() {
     setLoading(true);
     
-    // Загружаем публичные тарифы
-    const { data: tData } = await supabase
-      .from('tariffs')
-      .select('*')
-      .eq('is_public', true)
-      .order('price', { ascending: true });
+    // Загружаем тарифы
+    let query = supabase.from('tariffs').select('*');
+    
+    if (!isSuperAdmin) {
+      // Обычный пользователь видит публичные тарифы ИЛИ свой текущий (даже если он приватный)
+      query = query.or(`is_public.eq.true,id.eq.${currentShop.tariff_id}`);
+    }
+    
+    const { data: tData } = await query.order('price', { ascending: true });
 
     // Загружаем историю транзакций
     const { data: trData } = await supabase
@@ -43,23 +55,83 @@ export default function BillingPage() {
     setLoading(false);
   }
 
-  async function handleBuyPackage(amount: number, generations: number) {
-    // В реальности здесь вызов CloudPayments
-    // Сейчас просто имитируем успешную покупку
-    const { error } = await supabase.rpc('add_generations', {
-      p_shop_id: currentShop.id,
-      p_amount: generations,
-      p_payment_amount: amount,
-      p_description: `Пакет +${generations} примерок`
-    });
+  // Функция оплаты через CloudPayments
+  const handlePay = (tariff: any) => {
+    if (!window.cp) {
+      setToast({ message: 'Ошибка загрузки платежного модуля', type: 'error' });
+      return;
+    }
 
-    if (error) {
-      setToast({ message: 'Ошибка оплаты: ' + error.message, type: 'error' });
-    } else {
-      setToast({ message: 'Баланс пополнен', type: 'success' });
+    const widget = new window.cp.CloudPayments();
+    widget.pay('auth', {
+      publicId: process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID || 'pk_test_placeholder',
+      description: `Оплата тарифа: ${tariff.name}`,
+      amount: tariff.price,
+      currency: 'RUB',
+      accountId: user?.email,
+      data: {
+        shop_id: currentShop.id,
+        tariff_id: tariff.id,
+        type: 'tariff'
+      }
+    }, {
+      onSuccess: (options: any) => {
+        setToast({ message: 'Платеж успешно проведен! Баланс обновится в течение минуты.', type: 'success' });
+        setTimeout(() => {
+          refreshShops();
+          fetchBillingData();
+        }, 3000);
+      },
+      onFail: (reason: any, options: any) => {
+        setToast({ message: 'Ошибка оплаты: ' + reason, type: 'error' });
+      }
+    });
+  };
+
+  // Функция покупки пакета
+  const handleBuyPackage = (amount: number, generations: number) => {
+    if (!window.cp) return;
+
+    const widget = new window.cp.CloudPayments();
+    widget.pay('auth', {
+      publicId: process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID || 'pk_test_placeholder',
+      description: `Пополнение: +${generations} примерок`,
+      amount: amount,
+      currency: 'RUB',
+      accountId: user?.email,
+      data: {
+        shop_id: currentShop.id,
+        generations: generations,
+        type: 'package'
+      }
+    }, {
+      onSuccess: () => {
+        setToast({ message: 'Баланс пополнен', type: 'success' });
+        setTimeout(() => {
+          refreshShops();
+          fetchBillingData();
+        }, 3000);
+      }
+    });
+  };
+
+  // Мгновенная активация для суперадмина (только смена тарифа без начисления баланса)
+  async function handleActivate(tariff: any) {
+    setActionLoading(tariff.id);
+    
+    const { error } = await supabase
+      .from('shops')
+      .update({ tariff_id: tariff.id })
+      .eq('id', currentShop.id);
+
+    if (!error) {
+      setToast({ message: 'Тариф изменен', type: 'success' });
       await refreshShops();
       fetchBillingData();
+    } else {
+      setToast({ message: 'Ошибка: ' + error.message, type: 'error' });
     }
+    setActionLoading(null);
   }
 
   if (!currentShop) return <div className="p-10 text-zinc-400">Выберите магазин</div>;
@@ -67,20 +139,36 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-10">
-      <h2 className="text-3xl font-bold tracking-tight">Биллинг и тарифы</h2>
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Биллинг и тарифы</h2>
+        </div>
+        {/* {isSuperAdmin && (
+          <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg flex items-center gap-2">
+            <IconBolt size={16} className="text-amber-600" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Режим суперадмина</span>
+          </div>
+        )} */}
+      </div>
 
       {/* Текущий баланс */}
       <div className="bg-zinc-900 text-white p-8 rounded-2xl border border-black shadow-xl flex justify-between items-center">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Доступно генераций</p>
-          <div className="text-5xl font-black">{currentShop.remaining_generations}</div>
+          <div className="text-5xl font-black flex items-center gap-4">
+            {currentShop.remaining_generations}
+            <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-widest ${
+              currentShop.is_active 
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+            }`}>
+              {currentShop.is_active ? 'Активен' : 'Заблокирован'}
+            </span>
+          </div>
         </div>
         <div className="text-right">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Статус магазина</p>
-          <div className="flex items-center gap-2 justify-end">
-            <div className={`w-2 h-2 rounded-full ${currentShop.is_active ? 'bg-emerald-500' : 'bg-red-500'}`} />
-            <span className="font-bold uppercase tracking-widest text-xs">{currentShop.is_active ? 'Активен' : 'Заблокирован'}</span>
-          </div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Текущий тариф</p>
+          <div className="text-xl font-bold">{tariffs.find(t => t.id === currentShop.tariff_id)?.name || 'Не выбран'}</div>
         </div>
       </div>
 
@@ -89,8 +177,16 @@ export default function BillingPage() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6">Тарифные планы</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {tariffs.map((tariff) => (
-            <div key={tariff.id} className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm flex flex-col">
-              <h4 className="text-xl font-bold mb-2">{tariff.name}</h4>
+            <div key={tariff.id} className={`bg-white p-8 rounded-2xl border transition-all flex flex-col ${currentShop.tariff_id === tariff.id ? 'border-black ring-1 ring-black' : 'border-zinc-200 shadow-sm'}`}>
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="text-xl font-bold">{tariff.name}</h4>
+                {currentShop.tariff_id === tariff.id && (
+                  <span className="text-[8px] bg-black text-white px-2 py-1 rounded font-bold uppercase tracking-widest">Текущий</span>
+                )}
+                {!tariff.is_public && (
+                  <span className="text-[8px] bg-zinc-100 text-zinc-500 px-2 py-1 rounded font-bold uppercase tracking-widest">Приватный</span>
+                )}
+              </div>
               <div className="text-3xl font-black mb-6">{new Intl.NumberFormat('ru-RU').format(tariff.price)} ₽</div>
               <ul className="space-y-3 mb-8 flex-1">
                 <li className="flex items-center gap-2 text-sm text-zinc-600">
@@ -100,7 +196,28 @@ export default function BillingPage() {
                   <IconCheck size={16} className="text-emerald-500" /> Поддержка 24/7
                 </li>
               </ul>
-              <Button variant="secondary" className="w-full">ВЫБРАТЬ</Button>
+              
+              <div className="space-y-2">
+                <Button 
+                  variant={currentShop.tariff_id === tariff.id ? 'secondary' : 'primary'} 
+                  className="w-full" 
+                  onClick={() => handlePay(tariff)}
+                  disabled={currentShop.tariff_id === tariff.id}
+                >
+                  {currentShop.tariff_id === tariff.id ? 'ТЕКУЩИЙ ТАРИФ' : 'ВЫБРАТЬ'}
+                </Button>
+                
+                {isSuperAdmin && (
+                  <Button 
+                    variant="secondary" 
+                    className="w-full" 
+                    onClick={() => handleActivate(tariff)}
+                    disabled={actionLoading === tariff.id}
+                  >
+                    {actionLoading === tariff.id ? 'АКТИВАЦИЯ...' : 'АКТИВИРОВАТЬ'}
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
         </div>

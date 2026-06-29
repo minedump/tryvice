@@ -28,6 +28,7 @@ export default function Sidebar() {
 
   const isCreatingNew = pathname === '/admin/settings' && searchParams.get('action') === 'new';
   const hasActiveShop = !!currentShop && !isCreatingNew;
+  const isBlocked = currentShop && !currentShop.is_active && !isSuperAdmin;
 
   return (
     <aside className="w-72 bg-white border-r border-zinc-200 flex flex-col">
@@ -41,6 +42,17 @@ export default function Sidebar() {
           <div className="text-sm font-bold truncate">
             {currentShop?.name || 'Не выбран'}
           </div>
+          {currentShop && (
+            <div className="mt-1">
+              <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest ${
+                currentShop.is_active 
+                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                  : 'bg-red-50 text-red-600 border border-red-100'
+              }`}>
+                {currentShop.is_active ? 'Активен' : 'Заблокирован'}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -55,12 +67,20 @@ export default function Sidebar() {
           <>
             {hasActiveShop ? (
               <>
-                <NavLink href="/admin/dashboard" icon={<IconLayoutDashboard size={22} />} label="Дашборд" active={pathname === '/admin/dashboard'} />
-                <NavLink href="/admin/history" icon={<IconHistory size={22} />} label="История" active={pathname === '/admin/history'} />
-                <NavLink href="/admin/products" icon={<IconShirt size={22} />} label="Товары" active={pathname === '/admin/products'} />
-                <NavLink href="/admin/analytics" icon={<IconChartBar size={22} />} label="Аналитика" active={pathname === '/admin/analytics'} />
-                <NavLink href="/admin/billing" icon={<IconWallet size={22} />} label="Биллинг" active={pathname === '/admin/billing'} />
-                <NavLink href="/admin/settings" icon={<IconSettings size={22} />} label="Настройки" active={pathname === '/admin/settings'} />
+                {!isBlocked ? (
+                  <>
+                    <NavLink href="/admin/dashboard" icon={<IconLayoutDashboard size={22} />} label="Дашборд" active={pathname === '/admin/dashboard'} />
+                    <NavLink href="/admin/history" icon={<IconHistory size={22} />} label="История" active={pathname === '/admin/history'} />
+                    <NavLink href="/admin/products" icon={<IconShirt size={22} />} label="Товары" active={pathname === '/admin/products'} />
+                    <NavLink href="/admin/analytics" icon={<IconChartBar size={22} />} label="Аналитика" active={pathname === '/admin/analytics'} />
+                    <NavLink href="/admin/billing" icon={<IconWallet size={22} />} label="Биллинг" active={pathname === '/admin/billing'} />
+                    <NavLink href="/admin/settings" icon={<IconSettings size={22} />} label="Настройки" active={pathname === '/admin/settings'} />
+                  </>
+                ) : (
+                  <>
+                    <NavLink href="/admin/billing" icon={<IconWallet size={22} />} label="Биллинг" active={pathname === '/admin/billing'} />
+                  </>
+                )}
               </>
             ) : (
               <NavLink href="/admin/settings?action=new" icon={<IconSettings size={22} />} label="Создать магазин" active={pathname === '/admin/settings'} />

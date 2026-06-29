@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { ShopProvider } from '@/context/ShopContext';
 import { AuthProvider } from '@/context/AuthContext';
 import AppWrapper from '@/components/AppWrapper';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </AppWrapper>
           </ShopProvider>
         </AuthProvider>
+        <Script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js" strategy="beforeInteractive" />
       </body>
     </html>
   );

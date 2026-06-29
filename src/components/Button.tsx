@@ -22,7 +22,7 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = "inline-flex items-center justify-center font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl";
+  const baseStyles = "inline-flex items-center justify-center font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-lg";
   
   const variants = {
     primary: {
@@ -37,7 +37,7 @@ export default function Button({
 
   const sizes = {
     S: "px-3 py-1.5 text-[10px] gap-1.5",
-    M: "px-5 py-2.5 text-xs gap-2",
+    M: "px-5 py-3 text-xs gap-2",
     L: "px-8 py-4 text-sm gap-3",
   };
 

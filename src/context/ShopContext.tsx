@@ -40,7 +40,6 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
     if (data) {
       setShops(data);
-      const activeShops = data.filter(s => s.is_active);
       const savedId = localStorage.getItem('current_shop_id');
       
       // Если в localStorage явно записано 'null', значит админ выбрал режим управления платформой
@@ -51,19 +50,12 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
       let selected = data.find(s => s.id === savedId);
 
-      if (selected && !selected.is_active && !isSuperAdmin) {
-        selected = activeShops[0] || null;
-      }
-
-      // Если ничего не выбрано:
-      // Для клиента — берем первый активный
-      // Для админа — НЕ выбираем автоматически, позволяя остаться в режиме панели управления
-      if (!selected && !isSuperAdmin) {
-        selected = activeShops[0] || null;
-      }
+      // Убираем принудительную фильтрацию только активных магазинов при выборе из сохраненных
+      // Теперь разрешаем выбирать любой магазин из списка доступных пользователю
 
       if (!selected) {
-        selected = isSuperAdmin ? data[0] : (activeShops[0] || null);
+        // Если ничего не выбрано, берем первый из списка (даже если он заблокирован)
+        selected = data[0] || null;
       }
 
       if (selected) {
