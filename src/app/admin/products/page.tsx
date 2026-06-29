@@ -119,19 +119,20 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-zinc-50 border-b border-zinc-200">
-            <tr>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Название</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Цена</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Категория</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Доступность</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">Фото</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">URL</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">Примерок</th>
-              <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-right">Активность</th>
-            </tr>
-          </thead>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[1100px]">
+            <thead className="bg-zinc-50 border-b border-zinc-200">
+              <tr>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 w-1/4">Название</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Цена</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Категория</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Доступность</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">Фото</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">URL</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">Примерок</th>
+                <th className="px-4 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-right">Активность</th>
+              </tr>
+            </thead>
           <tbody className="divide-y divide-zinc-100">
             {loading && products.length === 0 ? (
               <tr><td colSpan={8} className="px-6 py-10 text-center text-zinc-400">Загрузка данных...</td></tr>
@@ -186,9 +187,10 @@ export default function ProductsPage() {
             ))}
           </tbody>
         </table>
+      </div>
 
-        {/* Пагинация */}
-        {totalPages > 1 && (
+      {/* Пагинация */}
+      {totalPages > 1 && (
           <div className="px-6 py-4 bg-zinc-50/50 border-t border-zinc-200 flex items-center justify-between">
             <div className="text-sm text-zinc-500">
               Страница {currentPage} из {totalPages}

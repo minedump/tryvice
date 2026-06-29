@@ -14,6 +14,7 @@ export default function RootPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -21,13 +22,47 @@ export default function RootPage() {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    // Обработка ошибок из URL (например, просроченная ссылка)
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Если пользователь авторизован, определяем куда его отправить
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.role === 'admin') {
+          window.location.href = '/superadmin/clients';
+          return;
+        }
+
+        const { data: shops } = await supabase
+          .from('shops')
+          .select('id')
+          .eq('owner_id', user.id);
+
+        const savedShopId = localStorage.getItem('current_shop_id');
+
+        if (!shops || shops.length === 0 || savedShopId === 'null') {
+          window.location.href = '/admin/settings';
+        } else {
+          window.location.href = '/admin/dashboard';
+        }
+      } else {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkUser();
+
+    // Обработка ошибок из URL
     const hash = window.location.hash;
     if (hash.includes('error=access_denied')) {
-      // Перенаправляем на регистрацию с флагом ошибки
       router.push('/register?error=expired');
     }
-  }, [router]);
+  }, [router, supabase]);
 
   const handleResend = async () => {
     if (!email) {
@@ -75,7 +110,7 @@ export default function RootPage() {
       .single();
 
     if (profile?.role === 'admin') {
-      router.push('/superadmin/clients');
+      window.location.href = '/superadmin/clients';
     } else {
       const { data: shops } = await supabase
         .from('shops')
@@ -83,13 +118,21 @@ export default function RootPage() {
         .eq('owner_id', data.user.id);
 
       if (!shops || shops.length === 0) {
-        router.push('/admin/settings');
+        window.location.href = '/admin/settings';
       } else {
-        router.push('/admin/dashboard');
+        window.location.href = '/admin/dashboard';
       }
     }
     router.refresh();
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+        <div className="text-zinc-400 animate-pulse font-bold uppercase tracking-widest text-xs">Загрузка...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50">

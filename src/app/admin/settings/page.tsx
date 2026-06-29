@@ -68,6 +68,12 @@ function SettingsForm() {
     const { data: { user } } = await supabase.auth.getUser();
     setSavingShop(true);
 
+    // Нормализация домена (добавление https:// если нет протокола)
+    let normalizedDomain = formData.domain.trim();
+    if (normalizedDomain && !normalizedDomain.startsWith('http://') && !normalizedDomain.startsWith('https://')) {
+      normalizedDomain = `https://${normalizedDomain}`;
+    }
+
     // Валидация фида перед сохранением
     if (formData.xml_feed_url) {
       setToast({ message: 'Проверка фида...', type: 'info' });
@@ -93,7 +99,7 @@ function SettingsForm() {
     const payload: any = {
       owner_id: user?.id,
       name: formData.name,
-      domain: formData.domain,
+      domain: normalizedDomain,
       xml_feed_url: formData.xml_feed_url
     };
 
@@ -128,6 +134,9 @@ function SettingsForm() {
     } else {
       const savedShop = result.data;
       setToast({ message: 'Данные магазина сохранены', type: 'success' });
+      
+      // Обновляем локальное состояние домена после нормализации
+      setFormData(prev => ({ ...prev, domain: normalizedDomain }));
       
       if (payload.xml_feed_url) {
         fetch('/api/admin/products/sync', {

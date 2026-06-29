@@ -18,6 +18,7 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   
@@ -26,13 +27,23 @@ function RegisterForm() {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        window.location.href = '/'; // Умный редирект с главной сам разберется
+      } else {
+        setIsCheckingAuth(false);
+      }
+    };
+    checkUser();
+
     if (searchParams.get('error') === 'expired') {
       setToast({
         message: 'Ссылка подтверждения просрочена. Пожалуйста, зарегистрируйтесь заново.',
         type: 'error'
       });
     }
-  }, [searchParams]);
+  }, [searchParams, supabase]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +94,10 @@ function RegisterForm() {
       }, 3000);
     }
   };
+
+  if (isCheckingAuth) {
+    return <div className="text-zinc-400 animate-pulse font-bold uppercase tracking-widest text-xs">Загрузка...</div>;
+  }
 
   return (
     <div className="max-w-md w-full bg-white rounded-2xl border border-zinc-200 p-10">

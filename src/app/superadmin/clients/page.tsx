@@ -1,64 +1,133 @@
-import { createClient } from '@supabase/supabase-js';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import React, { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { IconBuildingStore, IconUser, IconCircleFilled, IconExternalLink } from '@tabler/icons-react';
+import Toggle from '@/components/Toggle';
+import Toast from '@/components/Toast';
+import { useShop } from '@/context/ShopContext';
 
-const getSupabase = () => createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export default function ClientsPage() {
+  const supabase = createClientComponentClient();
+  const { setCurrentShop } = useShop();
+  const [shops, setShops] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<any>(null);
 
-export default async function ClientsPage() {
-  const supabase = getSupabase();
-  const { data: shops } = await supabase
-    .from('shops')
-    .select(`
-      *,
-      profiles (email)
-    `)
-    .order('created_at', { ascending: false });
+  useEffect(() => {
+    fetchShops();
+  }, []);
+
+  async function fetchShops() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('shops')
+      .select(`
+        *,
+        profiles (email, full_name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      setToast({ message: 'Ошибка загрузки: ' + error.message, type: 'error' });
+    } else {
+      setShops(data || []);
+    }
+    setLoading(false);
+  }
+
+  async function toggleShopActive(shopId: string, currentStatus: boolean) {
+    const { error } = await supabase
+      .from('shops')
+      .update({ is_active: !currentStatus })
+      .eq('id', shopId);
+
+    if (error) {
+      setToast({ message: 'Ошибка: ' + error.message, type: 'error' });
+    } else {
+      setShops(shops.map(s => s.id === shopId ? { ...s, is_active: !currentStatus } : s));
+      setToast({ message: 'Статус магазина обновлен', type: 'success' });
+    }
+  }
+
+  if (loading) return <div className="p-10 text-zinc-400">Загрузка списка клиентов...</div>;
 
   return (
-    <div>
-      <h2 className="text-3xl font-bold tracking-tight mb-10">Управление клиентами</h2>
+    <div className="max-w-6xl">
+      <div className="mb-10">
+        <h2 className="text-3xl font-bold tracking-tight">Управление клиентами</h2>
+      </div>
 
-      <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-zinc-50 border-b border-zinc-200">
-            <tr>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Магазин / Владелец</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Баланс</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Домен</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Статус</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Действия</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100">
-            {shops?.map((shop: any) => (
-              <tr key={shop.id} className="hover:bg-zinc-50/50 transition-colors">
-                <td className="px-6 py-5">
-                  <div className="font-semibold text-zinc-900">{shop.name}</div>
-                  <div className="text-xs text-zinc-400">{shop.profiles?.email}</div>
-                </td>
-                <td className="px-6 py-5">
-                  <span className={`font-bold ${shop.remaining_generations < 10 ? 'text-red-600' : 'text-black'}`}>
-                    {shop.remaining_generations}
-                  </span>
-                </td>
-                <td className="px-6 py-5 text-sm text-zinc-500">{shop.domain || '—'}</td>
-                <td className="px-6 py-5">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${shop.is_active ? 'bg-zinc-100 text-zinc-800' : 'bg-red-50 text-red-700'}`}>
-                    {shop.is_active ? 'Активен' : 'Заблокирован'}
-                  </span>
-                </td>
-                <td className="px-6 py-5">
-                  <button className="text-black font-bold text-xs uppercase tracking-widest hover:underline mr-4">Правка</button>
-                  <button className="text-red-600 font-bold text-xs uppercase tracking-widest hover:underline">{shop.is_active ? 'Блок' : 'Разблок'}</button>
-                </td>
+      <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead className="bg-zinc-50 border-b border-zinc-200">
+              <tr>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 w-1/3">Название магазина</th>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Баланс примерок</th>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Домен</th>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Статус</th>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-right">Активность</th>
               </tr>
-            ))}
+            </thead>
+          <tbody className="divide-y divide-zinc-100">
+            {shops.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-8 py-12 text-center text-zinc-400">Магазины не найдены</td>
+              </tr>
+            ) : (
+              shops.map((shop) => (
+                <tr key={shop.id} className="hover:bg-zinc-50/50 transition-colors">
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-400">
+                        <IconBuildingStore size={20} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-zinc-900">{shop.name}</div>
+                        <button 
+                          onClick={async () => {
+                            await setCurrentShop(shop);
+                            window.location.href = '/admin/dashboard';
+                          }}
+                          className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors mt-1"
+                        >
+                          Войти в магазин <IconExternalLink size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="text-sm font-bold text-zinc-900">{shop.remaining_generations}</div>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="text-sm text-zinc-600">{shop.domain || '—'}</div>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-1.5">
+                      <IconCircleFilled size={8} className={shop.is_active ? 'text-emerald-500' : 'text-zinc-300'} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        {shop.is_active ? 'Активен' : 'Приостановлен'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5 text-right">
+                    <div className="flex justify-end items-center gap-4">
+                      <Toggle 
+                        enabled={!!shop.is_active} 
+                        onChange={() => toggleShopActive(shop.id, shop.is_active)} 
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
+    </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

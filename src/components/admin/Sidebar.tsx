@@ -30,23 +30,21 @@ export default function Sidebar() {
 
   return (
     <aside className="w-72 bg-white border-r border-zinc-200 flex flex-col">
-      <div className="p-6 border-b border-zinc-100">
-        {isSuperAdmin ? (
-          <div className="py-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Панель управления</span>
+      {isSuperAdmin && !currentShop ? (
+        <div className="mt-6"></div>
+      ) : (
+        <div className="p-6 border-b border-zinc-100">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+            {isSuperAdmin ? 'Просмотр магазина' : 'Текущий магазин'}
           </div>
-        ) : (
-          <>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Текущий магазин</div>
-            <div className="text-sm font-bold truncate">
-              {currentShop?.name || 'Не выбран'}
-            </div>
-          </>
-        )}
-      </div>
+          <div className="text-sm font-bold truncate">
+            {currentShop?.name || 'Не выбран'}
+          </div>
+        </div>
+      )}
 
       <nav className="mt-6 px-4 space-y-1 flex-1">
-        {isSuperAdmin ? (
+        {isSuperAdmin && !currentShop ? (
           <>
             <NavLink href="/superadmin/clients" icon={<IconUsers size={22} />} label="Клиенты" active={pathname.startsWith('/superadmin/clients')} />
             <NavLink href="/superadmin/prompts" icon={<IconPrompt size={22} />} label="Промпты AI" active={pathname.startsWith('/superadmin/prompts')} />

@@ -8,7 +8,7 @@ import Toast from '@/components/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { IconLock, IconEye, IconEyeOff } from '@tabler/icons-react';
 
-export default function ProfilePage() {
+export default function SuperAdminProfilePage() {
   const supabase = createClientComponentClient();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -81,12 +81,12 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl">
-      <h2 className="text-3xl font-bold tracking-tight mb-10">Профиль пользователя</h2>
+      <h2 className="text-3xl font-bold tracking-tight mb-10">Профиль администратора</h2>
 
       <div className="space-y-8">
         <section className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm">
           <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 border-b pb-4 mb-6">Данные аккаунта</h3>
-          <form onSubmit={handleUpdateName} className="space-y-6">
+          <form onSubmit={handleUpdateName} className="space-y-4">
             <Input 
               label="Имя"
               value={name}
@@ -101,9 +101,9 @@ export default function ProfilePage() {
               icon={<IconLock size={16} />}
               className="bg-zinc-50 cursor-not-allowed"
             />
-            <div className="flex justify-end">
+            <div className="pt-2">
               <Button type="submit" disabled={loading}>
-                {loading ? 'СОХРАНЕНИЕ...' : 'СОХРАНИТЬ'}
+                {loading ? 'СОХРАНЕНИЕ...' : 'СОХРАНИТЬ ИМЯ'}
               </Button>
             </div>
           </form>
