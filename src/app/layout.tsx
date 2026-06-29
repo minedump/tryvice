@@ -2,6 +2,7 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import { ShopProvider } from '@/context/ShopContext';
 import { AuthProvider } from '@/context/AuthContext';
+import AppWrapper from '@/components/AppWrapper';
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
@@ -16,7 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className}>
         <AuthProvider>
           <ShopProvider>
-            {children}
+            <AppWrapper>
+              {children}
+            </AppWrapper>
           </ShopProvider>
         </AuthProvider>
       </body>

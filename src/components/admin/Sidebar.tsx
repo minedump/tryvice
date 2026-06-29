@@ -12,7 +12,8 @@ import {
   IconUsers,
   IconPrompt,
   IconCreditCard,
-  IconUserCircle
+  IconUserCircle,
+  IconWallet
 } from '@tabler/icons-react';
 import LogoutButton from '@/components/LogoutButton';
 import { useShop } from '@/context/ShopContext';
@@ -58,6 +59,7 @@ export default function Sidebar() {
                 <NavLink href="/admin/history" icon={<IconHistory size={22} />} label="История" active={pathname === '/admin/history'} />
                 <NavLink href="/admin/products" icon={<IconShirt size={22} />} label="Товары" active={pathname === '/admin/products'} />
                 <NavLink href="/admin/analytics" icon={<IconChartBar size={22} />} label="Аналитика" active={pathname === '/admin/analytics'} />
+                <NavLink href="/admin/billing" icon={<IconWallet size={22} />} label="Биллинг" active={pathname === '/admin/billing'} />
                 <NavLink href="/admin/settings" icon={<IconSettings size={22} />} label="Настройки" active={pathname === '/admin/settings'} />
               </>
             ) : (

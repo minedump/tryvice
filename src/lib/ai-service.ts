@@ -10,25 +10,28 @@ const getSupabase = () => createClient(
 );
 
 export class AIService {
-  private static cachedPrompts: any = null;
+  private static cachedSettings: any = null;
 
-  private static async getPrompts() {
-    if (this.cachedPrompts) return this.cachedPrompts;
+  private static async getSettings() {
+    if (this.cachedSettings) return this.cachedSettings;
     
     const supabase = getSupabase();
     const { data } = await supabase
       .from('platform_settings')
-      .select('value')
-      .eq('key', 'prompts')
-      .single();
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
 
-    this.cachedPrompts = data?.value || {
-      generation_base: "Virtual try-on: put the clothing from the product image onto the person in the user image.",
-      analysis_moderation: "Analyze the photo. Is it suitable for virtual clothing try-on? Requirements: person visible in full height or waist-up, clear image, no objects blocking the body. Return JSON: { \"suitable\": boolean, \"reason\": string | null }",
-      analysis_classification: "Is this image a single product on a neutral background (flat lay or headless mannequin) or an 'outfit' (look) — a model in full height with surroundings? Also determine if the object is actually clothing. Return JSON: { \"type\": \"product\" | \"outfit\", \"is_clothing\": boolean }"
+    this.cachedSettings = data || {
+      prompt_generation: "Virtual try-on: put the clothing from the product image onto the person in the user image.",
+      prompt_moderation: "Analyze the photo. Is it suitable for virtual clothing try-on? Requirements: person visible in full height or waist-up, clear image, no objects blocking the body. Return JSON: { \"suitable\": boolean, \"reason\": string | null }",
+      prompt_classification: "Is this image a single product on a neutral background (flat lay or headless mannequin) or an 'outfit' (look) — a model in full height with surroundings? Also determine if the object is actually clothing. Return JSON: { \"type\": \"product\" | \"outfit\", \"is_clothing\": boolean }",
+      model_generation: 'google/gemini-1.5-pro',
+      model_moderation: 'google/gemini-1.5-flash',
+      model_classification: 'google/gemini-1.5-flash'
     };
     
-    return this.cachedPrompts;
+    return this.cachedSettings;
   }
 
   public static async request(endpoint: string, body: any) {
@@ -68,13 +71,14 @@ export class AIService {
    * Анализ изображения (модерация или классификация товара)
    */
   static async analyzeImage(imageUrl: string, mode: 'moderation' | 'classification'): Promise<ImageAnalysisResult> {
-    const prompts = await this.getPrompts();
-    const prompt = mode === 'moderation' ? prompts.analysis_moderation : prompts.analysis_classification;
+    const settings = await this.getSettings();
+    const prompt = mode === 'moderation' ? settings.prompt_moderation : settings.prompt_classification;
+    const model = mode === 'moderation' ? settings.model_moderation : settings.model_classification;
 
-    console.log(`[AIService] Analyzing image via GPT-4o-mini: ${imageUrl}`);
+    console.log(`[AIService] Analyzing image via ${model}: ${imageUrl}`);
 
     const data = await this.request('/chat/completions', {
-      model: 'openai/gpt-4o-mini',
+      model: model,
       messages: [
         {
           role: 'user',
@@ -102,16 +106,32 @@ export class AIService {
   /**
    * Генерация примерки
    */
-  static async generateTryOn(userImageUrl: string, productImageId: string, type: 'single' | 'outfit'): Promise<string> {
-    const prompts = await this.getPrompts();
-    // В ТЗ указана модель google/gemini-3.1-flash-image-preview для генерации
-    const data = await this.request('/images/generations', {
-      model: 'google/gemini-3.1-flash-image-preview',
-      prompt: `${prompts.generation_base} Mode: ${type}`,
-      user_image: userImageUrl,
-      product_image: productImageId,
+  static async generateTryOn(userImageUrl: string, productImageUrl: string, type: 'single' | 'outfit'): Promise<string> {
+    const settings = await this.getSettings();
+    
+    const data = await this.request('/chat/completions', {
+      model: settings.model_generation,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: `${settings.prompt_generation} Mode: ${type}` },
+            {
+              type: 'image_url',
+              image_url: { url: userImageUrl }
+            },
+            {
+              type: 'image_url',
+              image_url: { url: productImageUrl }
+            }
+          ]
+        }
+      ]
     });
 
-    return data.url;
+    // В OpenAI-совместимом формате результат обычно приходит в тексте (ссылка) 
+    // или в специфическом поле, если это мультимодальная генерация.
+    // Если модель возвращает ссылку в тексте:
+    return data.choices[0].message.content; 
   }
 }
