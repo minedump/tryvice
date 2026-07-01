@@ -68,6 +68,18 @@ function SettingsForm() {
     const { data: { user } } = await supabase.auth.getUser();
     setSavingShop(true);
 
+    if (!formData.name.trim()) {
+      setToast({ message: 'Укажите название магазина', type: 'error' });
+      setSavingShop(false);
+      return;
+    }
+
+    if (!formData.domain.trim()) {
+      setToast({ message: 'Укажите домен магазина для работы виджета', type: 'error' });
+      setSavingShop(false);
+      return;
+    }
+
     // Нормализация домена (добавление https:// если нет протокола)
     let normalizedDomain = formData.domain.trim();
     if (normalizedDomain && !normalizedDomain.startsWith('http://') && !normalizedDomain.startsWith('https://')) {
@@ -100,7 +112,7 @@ function SettingsForm() {
       owner_id: user?.id,
       name: formData.name,
       domain: normalizedDomain,
-      xml_feed_url: formData.xml_feed_url
+      xml_feed_url: formData.xml_feed_url.trim() || null
     };
 
     let result;

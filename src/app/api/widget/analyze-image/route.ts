@@ -10,13 +10,23 @@ const getSupabase = () => createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return Response.json({}, { headers: corsHeaders });
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = getSupabase();
     const { image_url, shop_id, visitor_id } = await req.json();
 
     if (!image_url || !shop_id) {
-      return Response.json({ error: 'Missing parameters' }, { status: 400 });
+      return Response.json({ error: 'Missing parameters' }, { status: 400, headers: corsHeaders });
     }
 
     // 1. Проверка хеша для кеширования результатов
@@ -35,7 +45,7 @@ export async function POST(req: Request) {
         suitable: cached.suitable,
         reason: cached.reason,
         image_url: cached.storage_url
-      });
+      }, { headers: corsHeaders });
     }
 
     // 2. Вызов AI для модерации
@@ -63,10 +73,10 @@ export async function POST(req: Request) {
     return Response.json({
       ...analysis,
       image_url: storageUrl
-    });
+    }, { headers: corsHeaders });
 
   } catch (err: any) {
     console.error('Image analysis error:', err);
-    return Response.json({ error: err.message }, { status: 500 });
+    return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
   }
 }

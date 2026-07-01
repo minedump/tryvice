@@ -7,13 +7,23 @@ const getSupabase = () => createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return Response.json({}, { headers: corsHeaders });
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = getSupabase();
     const { shop_id, domain } = await req.json();
 
     if (!shop_id) {
-      return Response.json({ error: 'Missing shop_id' }, { status: 400 });
+      return Response.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
     }
 
     // Получаем данные магазина
@@ -24,12 +34,16 @@ export async function POST(req: Request) {
       .single();
 
     if (error || !shop) {
-      return Response.json({ error: 'Shop not found' }, { status: 404 });
+      return Response.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
 
-    // Проверка домена (если указан в настройках)
-    if (shop.domain && domain && !domain.includes(shop.domain)) {
-      return Response.json({ error: 'Invalid domain' }, { status: 403 });
+    // Проверка домена (обязательно для CORS и безопасности)
+    if (!shop.domain) {
+      return Response.json({ error: 'Shop domain not configured' }, { status: 403, headers: corsHeaders });
+    }
+
+    if (domain && !domain.includes(shop.domain.replace('https://', '').replace('http://', ''))) {
+      return Response.json({ error: 'Invalid domain' }, { status: 403, headers: corsHeaders });
     }
 
     // Проверка баланса
@@ -37,17 +51,17 @@ export async function POST(req: Request) {
       return Response.json({ 
         active: false, 
         reason: 'Insufficient balance' 
-      });
+      }, { headers: corsHeaders });
     }
 
     return Response.json({
       active: true,
       settings: shop.widget_settings,
       shop_name: shop.name
-    });
+    }, { headers: corsHeaders });
 
   } catch (err) {
     console.error('Widget init error:', err);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders });
   }
 }
