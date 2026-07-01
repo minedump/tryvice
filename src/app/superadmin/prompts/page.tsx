@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Button from '@/components/Button';
 import Toast from '@/components/Toast';
-import Select from '@/components/Select';
+import Input from '@/components/Input';
 
 export default function PromptsPage() {
   const supabase = createClientComponentClient();
@@ -121,12 +121,21 @@ function PromptBlock({ title, prompt, model, models, onPromptChange, onModelChan
       <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 border-b pb-4 mb-6">{title}</h3>
       
       <div className="space-y-6 mb-4">
-        <Select 
-          label="Используемая модель"
-          options={models}
-          value={model}
-          onChange={(e) => onModelChange(e.target.value)}
-        />
+        <div className="space-y-1">
+          <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Используемая модель</label>
+          <div className="relative">
+            <input 
+              list={`models-${title}`} 
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-black transition-all"
+              value={model}
+              onChange={(e) => onModelChange(e.target.value)}
+              placeholder="Например: openai/gpt-4o"
+            />
+            <datalist id={`models-${title}`}>
+              {models.map((m: string) => <option key={m} value={m} />)}
+            </datalist>
+          </div>
+        </div>
         
         <div className="space-y-1">
           <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Текст промпта</label>
