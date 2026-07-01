@@ -36,16 +36,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
     }
 
-    // Получаем данные магазина без .single() для отладки
-    const { data: shops, error } = await supabase
+    // Тестовый запрос: видим ли мы хоть что-то в таблице?
+    const { count: debugCount } = await supabase.from('shops').select('*', { count: 'exact', head: true });
+    console.log(`[WidgetInit] Total shops visible to client: ${debugCount}`);
+
+    // Получаем данные магазина
+    const { data: shop, error } = await supabase
       .from('shops')
       .select('*')
-      .eq('id', shop_id.trim());
-
-    const shop = shops && shops.length > 0 ? shops[0] : null;
+      .eq('id', shop_id.trim())
+      .maybeSingle();
 
     if (error || !shop) {
-      console.error(`[WidgetInit] Shop not found. Found ${shops?.length || 0} rows. Error:`, error);
+      console.error(`[WidgetInit] Shop not found. ID: ${shop_id}. Total visible: ${debugCount}. Error:`, error);
       return NextResponse.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
 
