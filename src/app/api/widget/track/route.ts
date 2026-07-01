@@ -36,12 +36,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400, headers: getCorsHeaders(origin) });
     }
 
+    // Валидация UUID для visitor_id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const validVisitorId = visitor_id && uuidRegex.test(visitor_id) ? visitor_id : null;
+
     const { error } = await supabase
       .from('analytics_events')
       .insert({
         shop_id,
         event_type,
-        visitor_id,
+        visitor_id: validVisitorId,
         page_url,
         metadata
       });
