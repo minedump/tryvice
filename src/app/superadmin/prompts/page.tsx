@@ -122,30 +122,27 @@ function PromptBlock({ title, prompt, model, models, onPromptChange, onModelChan
       
       <div className="space-y-6 mb-4">
         <div className="space-y-1">
-          <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Используемая модель</label>
-          <div className="relative">
-            <input 
-              list={`models-${title}`} 
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-black transition-all"
-              value={model}
-              onChange={(e) => onModelChange(e.target.value)}
-              placeholder="Например: openai/gpt-4o"
-            />
-            <datalist id={`models-${title}`}>
-              {models.map((m: string) => <option key={m} value={m} />)}
-            </datalist>
-          </div>
+          <Input 
+            label="Используемая модель"
+            list={`models-${title}`} 
+            value={model}
+            onChange={(e) => onModelChange(e.target.value)}
+            placeholder="Например: openai/gpt-4o"
+            tooltip="Выберите модель из списка или введите название вручную. Модели должны быть доступны в KodikRouter."
+          />
+          <datalist id={`models-${title}`}>
+            {models.map((m: string) => <option key={m} value={m} />)}
+          </datalist>
         </div>
         
-        <div className="space-y-1">
-          <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Текст промпта</label>
-          <textarea 
-            className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm h-48 focus:border-black outline-none transition-all leading-relaxed"
-            value={prompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-            placeholder="Введите текст промпта..."
-          />
-        </div>
+        <Input 
+          label="Текст промпта"
+          multiline
+          value={prompt}
+          onChange={(e) => onPromptChange(e.target.value)}
+          placeholder="Введите текст промпта..."
+          tooltip="Промпт, который будет отправлен нейросети вместе с изображениями."
+        />
       </div>
 
       <div className="flex justify-end">

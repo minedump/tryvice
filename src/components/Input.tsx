@@ -3,6 +3,9 @@ import React from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { IconHelpCircle } from '@tabler/icons-react';
+import Tooltip from './Tooltip';
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -13,14 +16,15 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTe
   multiline?: boolean;
   icon?: React.ReactNode;
   onIconClick?: () => void;
+  tooltip?: string;
 }
-
 export default function Input({
   label,
   error,
   multiline = false,
   icon,
   onIconClick,
+  tooltip,
   className,
   ...props
 }: InputProps) {
@@ -28,10 +32,9 @@ export default function Input({
     "w-full border border-zinc-200 rounded-lg px-4 py-2.5 outline-none focus:border-black transition-colors placeholder:text-zinc-300 text-sm",
     error && "border-red-500 focus:border-red-500",
     multiline && "min-h-[100px] resize-none",
-    icon && !multiline && "pr-11",
+    (icon || tooltip) && !multiline && "pr-11",
     className
-  );
-  const labelStyles = "block text-[10px] font-bold uppercase text-zinc-400 mb-1 tracking-widest";
+  );  const labelStyles = "block text-[10px] font-bold uppercase text-zinc-400 mb-1 tracking-widest";
 
   return (
     <div className="w-full">
@@ -42,7 +45,7 @@ export default function Input({
         ) : (
           <input className={inputStyles} {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />
         )}
-        {icon && (
+        {icon ? (
           <div 
             className={cn(
               "absolute top-1/2 -translate-y-1/2 right-4 flex items-center text-zinc-400",
@@ -52,8 +55,12 @@ export default function Input({
           >
             {icon}
           </div>
-        )}      </div>
-      {error && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{error}</p>}
+        ) : tooltip ? (
+          <div className="absolute top-1/2 -translate-y-1/2 right-4 flex items-center">
+            <Tooltip content={tooltip} />
+          </div>
+        ) : null}
+      </div>      {error && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{error}</p>}
     </div>
   );
 }
