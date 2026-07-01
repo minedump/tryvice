@@ -2,8 +2,6 @@
 import React from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-import { IconHelpCircle } from '@tabler/icons-react';
 import Tooltip from './Tooltip';
 
 function cn(...inputs: ClassValue[]) {
@@ -33,9 +31,11 @@ export default function Input({
     error && "border-red-500 focus:border-red-500",
     multiline && "min-h-[100px] resize-none",
     (icon || tooltip) && !multiline && "pr-11",
+    "[&::-webkit-calendar-picker-indicator]:hidden",
     className
-  );  const labelStyles = "block text-[10px] font-bold uppercase text-zinc-400 mb-1 tracking-widest";
+  );
 
+  const labelStyles = "block text-[10px] font-bold uppercase text-zinc-400 mb-1 tracking-widest";
   return (
     <div className="w-full">
       {label && <label className={labelStyles}>{label}</label>}
@@ -60,7 +60,8 @@ export default function Input({
             <Tooltip content={tooltip} />
           </div>
         ) : null}
-      </div>      {error && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{error}</p>}
+      </div>
+      {error && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{error}</p>}
     </div>
   );
 }

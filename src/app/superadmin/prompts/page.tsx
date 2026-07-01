@@ -141,7 +141,6 @@ function PromptBlock({ title, prompt, model, models, onPromptChange, onModelChan
           value={prompt}
           onChange={(e) => onPromptChange(e.target.value)}
           placeholder="Введите текст промпта..."
-          tooltip="Промпт, который будет отправлен нейросети вместе с изображениями."
         />
       </div>
 
