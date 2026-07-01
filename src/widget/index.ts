@@ -254,10 +254,13 @@ import { ICONS, SHIRT_ICON } from './templates';
         return `
           <div class="tv-error-box">
             <div class="tv-error-icon">
-              <svg width="32" height="32"><use href="#tv-error"></use></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 5L5 15" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 5L15 15" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
-            <div class="tv-title" style="color:#EF4444">Фото не подходит</div>
-            <div class="tv-subtitle" style="color:#EF4444">${this.state.error}</div>
+            <div class="tv-error-title">Фото не подходит</div>
+            <div class="tv-error-text">${this.state.error}</div>
           </div>
           <button class="tv-main-btn" id="clear-error">Заменить фото</button>
         `;

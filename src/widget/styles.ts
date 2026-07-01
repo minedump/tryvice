@@ -60,8 +60,19 @@ export const getStyles = (primaryColor: string) => `
   .tv-progress-fill { background: #000; height: 100%; transition: width 0.3s ease; }
   .tv-progress-text { font-size: 12px; font-weight: 700; color: #000; }
 
-  .tv-error-box { color: #EF4444; margin-bottom: 24px; }
-  .tv-error-icon { width: 32px; height: 32px; margin: 0 auto 16px; }
+  .tv-error-box { 
+    background: #FEF2F2; 
+    border-radius: 24px; 
+    padding: 24px; 
+    margin-bottom: 32px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 8px;
+  }
+  .tv-error-icon { color: #EF4444; display: flex; align-items: center; justify-content: center; }
+  .tv-error-title { color: #EF4444; font-size: 16px; font-weight: 700; }
+  .tv-error-text { color: #EF4444; font-size: 14px; line-height: 1.4; text-align: center; }
 
   .tv-user-photo-preview { width: 100%; aspect-ratio: 3/4; border-radius: 24px; object-fit: cover; margin-bottom: 32px; background: var(--zinc-100); }
   
