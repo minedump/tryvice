@@ -40,6 +40,8 @@ export default function PromptsPage() {
     recraft: [
       { id: 'recraftv4_1', label: 'Recraft V4.1' },
       { id: 'recraftv4_1_pro', label: 'Recraft V4.1 Pro' },
+      { id: 'nano_banana_2', label: 'Nano Banana 2' },
+      { id: 'nano_banana_2_lite', label: 'Nano Banana 2 Lite' },
     ]
   };
 
