@@ -60,25 +60,42 @@ export class AIService {
   }
 
   private static async requestGemini(body: any) {
-    const model = body.model.replace('google/', ''); // Убираем префикс если есть
+    const model = body.model.replace('google/', '');
     const url = `${GEMINI_API_URL}/${model}:generateContent?key=${GEMINI_API_KEY}`;
     
     console.log(`[AIService] Sending request to Google Gemini: ${model}`);
 
-    // Конвертируем формат OpenAI в формат Gemini
-    const contents = body.messages.map((m: any) => {
-      const parts = Array.isArray(m.content) ? m.content.map((c: any) => {
+    // Конвертируем формат OpenAI в формат Gemini с поддержкой base64
+    const contents = await Promise.all(body.messages.map(async (m: any) => {
+      const parts = await Promise.all((Array.isArray(m.content) ? m.content : [{ type: 'text', text: m.content }]).map(async (c: any) => {
         if (c.type === 'text') return { text: c.text };
         if (c.type === 'image_url') {
-          // Gemini ожидает base64 или ссылку через специфический формат
-          // Для простоты теста передаем как ссылку, если это URL
-          return { inline_data: { mime_type: "image/jpeg", data: c.image_url.url } }; // Это упрощение, Gemini требует base64 для inline_data
+          try {
+            const imageUrl = c.image_url.url;
+            const response = await fetch(imageUrl);
+            const buffer = await response.arrayBuffer();
+            const base64 = Buffer.from(buffer).toString('base64');
+            const mimeType = response.headers.get('content-type') || 'image/jpeg';
+
+            return {
+              inline_data: {
+                mime_type: mimeType,
+                data: base64
+              }
+            };
+          } catch (err) {
+            console.error('[AIService] Failed to fetch image for Gemini:', err);
+            return null;
+          }
         }
-        return {};
-      }) : [{ text: m.content }];
+        return null;
+      }));
       
-      return { role: m.role === 'user' ? 'user' : 'model', parts };
-    });
+      return {
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: parts.filter(p => p !== null)
+      };
+    }));
 
     const response = await fetch(url, {
       method: 'POST',
