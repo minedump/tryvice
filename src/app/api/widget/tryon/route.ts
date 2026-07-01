@@ -84,17 +84,13 @@ export async function POST(req: Request) {
     // Используем первое (приоритетное) изображение для генерации
     const productImageUrl = productImages[0].url;
 
-    // Валидация UUID для visitor_id
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    const validVisitorId = visitor_id && uuidRegex.test(visitor_id) ? visitor_id : null;
-
     // 4. Создание записи о генерации в статусе 'processing'
     const { data: generation, error: genError } = await supabase
       .from('generations')
       .insert({
         shop_id,
         product_id: finalProductId,
-        visitor_id: validVisitorId,
+        visitor_id,
         user_image_url: 'pending', // Обновим после загрузки
         type,
         status: 'processing'
