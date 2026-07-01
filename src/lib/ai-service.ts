@@ -36,6 +36,9 @@ export class AIService {
 
   public static async request(body: any, provider: 'kodik' | 'google' = 'kodik') {
     if (provider === 'google') {
+      if (body.model.includes('imagen')) {
+        return this.requestImagen(body);
+      }
       return this.requestGemini(body);
     }
 
@@ -57,6 +60,51 @@ export class AIService {
     }
 
     return response.json();
+  }
+
+  private static async requestImagen(body: any) {
+    const model = body.model.replace('google/', '');
+    // Imagen использует эндпоинт predict
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${GEMINI_API_KEY}`;
+    
+    console.log(`[AIService] Generating image via Google Imagen: ${model}`);
+
+    // Извлекаем текст промпта из сообщений
+    const prompt = body.messages.map((m: any) => 
+      Array.isArray(m.content) ? m.content.map((c: any) => c.text || '').join(' ') : m.content
+    ).join('\n');
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: "1:1",
+          outputMimeType: "image/jpeg"
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Imagen API Error: ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    // Imagen возвращает base64 в поле bytes
+    const base64Image = data.predictions[0].bytesBase64Encoded;
+    const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+
+    return {
+      choices: [{
+        message: {
+          content: imageUrl
+        }
+      }]
+    };
   }
 
   private static async requestGemini(body: any) {
