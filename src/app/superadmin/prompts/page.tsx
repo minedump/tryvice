@@ -53,6 +53,7 @@ export default function PromptsPage() {
       const payload = {
         [`prompt_${type}`]: settings[`prompt_${type}`],
         [`model_${type}`]: settings[`model_${type}`],
+        [`provider_${type}`]: settings[`provider_${type}`],
         updated_at: new Date().toISOString()
       };
 
@@ -81,9 +82,11 @@ export default function PromptsPage() {
           title="Генерация (Try-On)"
           prompt={settings.prompt_generation}
           model={settings.model_generation}
+          provider={settings.provider_generation}
           models={GENERATIVE_MODELS}
           onPromptChange={(val: string) => setSettings({ ...settings, prompt_generation: val })}
           onModelChange={(val: string) => setSettings({ ...settings, model_generation: val })}
+          onProviderChange={(val: string) => setSettings({ ...settings, provider_generation: val })}
           onSave={() => handleSave('generation')}
           isSaving={savingKey === 'generation'}
         />
@@ -92,9 +95,11 @@ export default function PromptsPage() {
           title="Модерация фото пользователя"
           prompt={settings.prompt_moderation}
           model={settings.model_moderation}
+          provider={settings.provider_moderation}
           models={ANALYTIC_MODELS}
           onPromptChange={(val: string) => setSettings({ ...settings, prompt_moderation: val })}
           onModelChange={(val: string) => setSettings({ ...settings, model_moderation: val })}
+          onProviderChange={(val: string) => setSettings({ ...settings, provider_moderation: val })}
           onSave={() => handleSave('moderation')}
           isSaving={savingKey === 'moderation'}
         />
@@ -103,9 +108,11 @@ export default function PromptsPage() {
           title="Классификация товаров (Фид)"
           prompt={settings.prompt_classification}
           model={settings.model_classification}
+          provider={settings.provider_classification}
           models={ANALYTIC_MODELS}
           onPromptChange={(val: string) => setSettings({ ...settings, prompt_classification: val })}
           onModelChange={(val: string) => setSettings({ ...settings, model_classification: val })}
+          onProviderChange={(val: string) => setSettings({ ...settings, provider_classification: val })}
           onSave={() => handleSave('classification')}
           isSaving={savingKey === 'classification'}
         />
@@ -115,24 +122,34 @@ export default function PromptsPage() {
   );
 }
 
-function PromptBlock({ title, prompt, model, models, onPromptChange, onModelChange, onSave, isSaving }: any) {
+function PromptBlock({ title, prompt, model, provider, models, onPromptChange, onModelChange, onProviderChange, onSave, isSaving }: any) {
   return (
     <div className="bg-white border border-zinc-200 p-8 rounded-2xl shadow-sm">
       <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 border-b pb-4 mb-6">{title}</h3>
       
       <div className="space-y-6 mb-4">
-        <div className="space-y-1">
-          <Input 
-            label="Используемая модель"
-            list={`models-${title}`} 
-            value={model}
-            onChange={(e) => onModelChange(e.target.value)}
-            placeholder="Например: openai/gpt-4o"
-            tooltip="Выберите модель из списка или введите название вручную. Модели должны быть доступны в KodikRouter."
-          />
-          <datalist id={`models-${title}`}>
-            {models.map((m: string) => <option key={m} value={m} />)}
-          </datalist>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Провайдер</label>
+            <Select 
+              options={['kodik', 'google']}
+              value={provider}
+              onChange={(e) => onProviderChange(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Input 
+              label="Используемая модель"
+              list={`models-${title}`} 
+              value={model}
+              onChange={(e) => onModelChange(e.target.value)}
+              placeholder="Например: openai/gpt-4o"
+              tooltip="Выберите модель из списка или введите название вручную. Модели должны быть доступны у выбранного провайдера."
+            />
+            <datalist id={`models-${title}`}>
+              {models.map((m: string) => <option key={m} value={m} />)}
+            </datalist>
+          </div>
         </div>
         
         <Input 

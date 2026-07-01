@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const API_KEY = process.env.KODIKROUTER_API_KEY || '';
 const API_URL = process.env.KODIKROUTER_API_URL || 'https://api.kodikrouter.ru/v1/chat/completions';
+const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY || '';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,8 +34,12 @@ export class AIService {
     return data;
   }
 
-  public static async request(body: any) {
-    console.log(`[AIService] Sending request to: ${API_URL}`);
+  public static async request(body: any, provider: 'kodik' | 'google' = 'kodik') {
+    if (provider === 'google') {
+      return this.requestGemini(body);
+    }
+
+    console.log(`[AIService] Sending request to KodikRouter: ${API_URL}`);
     
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -53,6 +59,49 @@ export class AIService {
     return response.json();
   }
 
+  private static async requestGemini(body: any) {
+    const model = body.model.replace('google/', ''); // Убираем префикс если есть
+    const url = `${GEMINI_API_URL}/${model}:generateContent?key=${GEMINI_API_KEY}`;
+    
+    console.log(`[AIService] Sending request to Google Gemini: ${model}`);
+
+    // Конвертируем формат OpenAI в формат Gemini
+    const contents = body.messages.map((m: any) => {
+      const parts = Array.isArray(m.content) ? m.content.map((c: any) => {
+        if (c.type === 'text') return { text: c.text };
+        if (c.type === 'image_url') {
+          // Gemini ожидает base64 или ссылку через специфический формат
+          // Для простоты теста передаем как ссылку, если это URL
+          return { inline_data: { mime_type: "image/jpeg", data: c.image_url.url } }; // Это упрощение, Gemini требует base64 для inline_data
+        }
+        return {};
+      }) : [{ text: m.content }];
+      
+      return { role: m.role === 'user' ? 'user' : 'model', parts };
+    });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API Error: ${errorText}`);
+    }
+
+    const data = await response.json();
+    // Маппим ответ обратно в формат, который ожидает наш сервис
+    return {
+      choices: [{
+        message: {
+          content: data.candidates[0].content.parts[0].text
+        }
+      }]
+    };
+  }
+
   /**
    * Анализ изображения (модерация или классификация товара)
    */
@@ -60,8 +109,9 @@ export class AIService {
     const settings = await this.getSettings();
     const prompt = mode === 'moderation' ? settings.prompt_moderation : settings.prompt_classification;
     const model = mode === 'moderation' ? settings.model_moderation : settings.model_classification;
+    const provider = mode === 'moderation' ? settings.provider_moderation : settings.provider_classification;
 
-    console.log(`[AIService] Analyzing image via ${model}: ${imageUrl}`);
+    console.log(`[AIService] Analyzing image via ${provider}/${model}: ${imageUrl}`);
 
     const data = await this.request({
       model: model,
@@ -80,12 +130,15 @@ export class AIService {
         }
       ],
       response_format: { type: 'json_object' }
-    });
+    }, provider as any);
 
     const content = data.choices[0].message.content;
     console.log(`[AIService] AI Response for ${mode}:`, content);
     
-    return JSON.parse(content) as ImageAnalysisResult;
+    // Очистка от markdown блоков если Gemini их добавит
+    const cleanContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    return JSON.parse(cleanContent) as ImageAnalysisResult;
   }
 
   /**
@@ -94,8 +147,9 @@ export class AIService {
   static async generateTryOn(userImageUrl: string, productImageUrl: string, type: 'single' | 'outfit'): Promise<string> {
     const settings = await this.getSettings();
     const model = settings.model_generation;
+    const provider = settings.provider_generation;
     
-    console.log(`[AIService] Generating try-on via KodikRouter. Model: ${model}, Type: ${type}`);
+    console.log(`[AIService] Generating try-on via ${provider}. Model: ${model}, Type: ${type}`);
 
     const data = await this.request({
       model: model,
@@ -118,7 +172,7 @@ export class AIService {
           ]
         }
       ]
-    });
+    }, provider as any);
 
     const content = data.choices[0].message.content;
     console.log(`[AIService] AI Response for generation:`, content);
