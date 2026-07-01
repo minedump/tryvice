@@ -200,13 +200,14 @@
       const { primary_color, button_text } = this.state.settings || {};
       const hasExternalButton = !!this.getAttribute('data-button-selector');
       
-      const logoSvg = `<svg viewBox="0 0 140 18" xmlns="http://www.w3.org/2000/svg" fill="none" style="height:16px; width:auto;"><path d="M119.346 10.3887C118.696 14.3496 115.192 17.4199 108.33 17.4199C101.129 17.4199 97.3381 13.6289 97.3381 8.70704C97.3381 3.7832 101.129 0 108.33 0C115.192 0 118.672 3.07226 119.346 7.03126L115.074 7.03126C114.641 5.2793 112.672 3.4746 108.33 3.4746C103.912 3.4746 101.61 5.7832 101.61 8.70704C101.61 11.6367 103.912 13.9395 108.33 13.9395C112.672 13.9395 114.641 12.1406 115.074 10.3887L119.346 10.3887ZM12.1855 3.86132L12.1855 17.1094L7.91406 17.1094L7.91406 3.86132L1 3.86132L1 0.31054L19.0996 0.31054L19.0996 3.86132L12.1855 3.86132ZM38.5159 13.6523C37.5784 11.6367 36.6643 11.0391 34.9358 10.9629L34.9358 10.5586C37.3616 10.3652 39.2542 8.32618 39.2542 5.58984C39.2542 2.54296 37.0276 0.31054 32.4163 0.31054L21.3069 0.31054L21.3069 17.1094L25.5784 17.1094L25.5784 11.2793L30.3772 11.2793C32.0061 11.2793 32.7034 11.6367 33.2073 12.791L35.0354 17.1094L40.1213 17.1094L38.5159 13.6523ZM80.1069 0.31054L72.3315 17.1094L67.1226 17.1094L59.4934 0.62634L51.9543 11.8066L51.9543 17.1094L47.6829 17.1094L47.6829 11.8066L39.9309 0.31054L44.8235 0.31054L48.6438 6.11718C49.3586 7.29492 49.6223 8.15626 49.6223 8.94726L49.6223 9.2871L50.0325 9.2871L50.0325 8.94726C50.0325 8.15626 50.2727 7.29492 51.0168 6.11718L54.8313 0.31054L64.146 0.31054L68.7046 11.0391C69.3784 12.7676 69.5425 13.4883 69.5425 14.4961L69.5425 14.5664L69.9292 14.5664L69.9292 14.4961C69.9292 13.4883 70.0991 12.7676 70.7671 11.0391L75.3315 0.31054L80.1069 0.31054ZM95.7312 13.6758L95.7312 17.1094L80.9421 17.1094L80.9421 13.6758L86.198 13.6758L86.198 3.74414L80.9421 3.74414L80.9421 0.31054L95.7312 0.31054L95.7312 3.74414L90.4753 3.74414L90.4753 13.6758L95.7312 13.6758ZM122.227 0.31054L138.903 0.31054L138.903 3.66796L126.498 3.66796L126.498 7.07812L137.227 7.07812L137.227 10.0781L126.498 10.0781L126.498 13.752L138.903 13.752L138.903 17.1094L122.227 17.1094L122.227 0.31054ZM25.3616 8.58984L25.3616 3.66796L32.0061 3.66796C33.9983 3.66796 34.9827 4.65234 34.9827 6.11718C34.9827 7.58204 33.9983 8.58984 32.0061 8.58984L25.3616 8.58984Z" fill="currentColor" fill-rule="evenodd" /></svg>`;
-
       const shirtIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M15 4l6 2v5h-3v8a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1v-8h-3v-5l6 -2a3 3 0 0 0 6 0" /></svg>`;
+      const spritePath = `${API_BASE.replace('/api/widget', '')}/widget-sprites.svg`;
 
       this.shadowRoot.innerHTML = `
         <style>
-          :host { --primary: ${primary_color || '#000'}; --bg: #fff; }
+          :host { --primary: ${primary_color || '#000'}; --bg: #fff; --zinc-100: #f4f4f5; --zinc-400: #a1a1aa; --zinc-500: #71717a; }
+          * { box-sizing: border-box; }
+          
           .tv-floating-btn {
             display: ${hasExternalButton ? 'none' : 'flex'};
             position: fixed; bottom: 24px; right: 24px;
@@ -222,6 +223,107 @@
             overflow: hidden;
             padding: 0 16px;
           }
+          .tv-floating-btn .tv-btn-text {
+            max-width: 0; opacity: 0; white-space: nowrap; transition: all 0.3s ease; font-size: 14px; margin-left: 0;
+          }
+          .tv-floating-btn:hover { padding: 0 24px; }
+          .tv-floating-btn:hover .tv-btn-text { max-width: 200px; opacity: 1; margin-left: 12px; }
+
+          .tv-modal {
+            display: ${this.state.isOpen ? 'flex' : 'none'};
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            align-items: center; justify-content: center; z-index: 10000;
+            font-family: 'Inter', -apple-system, sans-serif;
+          }
+          .tv-content {
+            background: white; border-radius: 32px; width: 400px; max-height: 90vh;
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+          }
+          .tv-header {
+            padding: 24px 32px; display: flex; justify-content: space-between; align-items: center;
+          }
+          .tv-logo { height: 18px; color: #000; }
+          .tv-logo svg { height: 100%; width: auto; }
+          .tv-close { cursor: pointer; color: #000; transition: opacity 0.2s; }
+          .tv-close:hover { opacity: 0.6; }
+
+          .tv-body { padding: 0 32px 32px; overflow-y: auto; flex: 1; text-align: center; }
+          .tv-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #000; }
+          .tv-subtitle { font-size: 13px; color: var(--zinc-500); margin-bottom: 24px; line-height: 1.5; }
+          
+          .tv-guide { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+          .tv-guide-item { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; background: var(--zinc-100); }
+          .tv-guide-item img { width: 100%; height: 100%; object-fit: cover; }
+          .tv-badge { position: absolute; bottom: 12px; left: 12px; width: 24px; height: 24px; }
+          .tv-badge svg { width: 100%; height: 100%; }
+
+          .tv-main-btn { 
+            background: #000; color: #fff; width: 100%; padding: 18px; border: none; 
+            border-radius: 16px; font-weight: 700; font-size: 14px; cursor: pointer; 
+            transition: transform 0.1s, background 0.2s; 
+          }
+          .tv-main-btn:hover { background: #222; }
+          .tv-main-btn:active { transform: scale(0.98); }
+          
+          .tv-secondary-btn { 
+            background: #fff; color: #000; border: 1px solid var(--zinc-200); width: 100%; 
+            padding: 14px; border-radius: 16px; font-weight: 700; font-size: 14px; cursor: pointer; 
+          }
+
+          .tv-progress-container { margin: 40px 0; }
+          .tv-progress-bar { background: var(--zinc-100); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+          .tv-progress-fill { background: #000; height: 100%; width: 35%; transition: width 0.3s ease; }
+          .tv-progress-text { font-size: 12px; font-weight: 700; color: #000; }
+
+          .tv-error-box { color: #EF4444; margin-bottom: 24px; }
+          .tv-error-icon { width: 32px; height: 32px; margin: 0 auto 16px; }
+
+          .tv-user-photo-preview { 
+            width: 100%; aspect-ratio: 3/4; border-radius: 20px; object-fit: cover; 
+            margin-bottom: 24px; background: var(--zinc-100);
+          }
+          
+          .tv-history-section { margin-top: 32px; text-align: left; }
+          .tv-history-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+          .tv-history-list { display: flex; gap: 12px; align-items: center; }
+          .tv-history-item { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid transparent; }
+          .tv-history-item.active { border-color: #000; }
+          .tv-add-photo { 
+            width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--zinc-200); 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--zinc-400);
+          }
+
+          .tv-footer { font-size: 10px; color: var(--zinc-400); margin-top: 32px; }
+        </style>
+
+        <div class="tv-floating-btn" id="open-btn">
+          ${shirtIcon}
+          <span class="tv-btn-text">${button_text || 'Примерить онлайн'}</span>
+        </div>
+
+        <div class="tv-modal" id="modal">
+          <div class="tv-content">
+            <div class="tv-header">
+              <div class="tv-logo">
+                <svg><use href="${spritePath}#tv-logo"></use></svg>
+              </div>
+              <div class="tv-close" id="close-btn">
+                <svg width="24" height="24"><use href="${spritePath}#tv-close"></use></svg>
+              </div>
+            </div>
+            <div class="tv-body">
+              ${this.renderStep()}
+              <div class="tv-footer">Powered by TryVice</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      this.shadowRoot.getElementById('open-btn')?.addEventListener('click', () => this.toggleModal(true));
+      this.shadowRoot.getElementById('close-btn')?.addEventListener('click', () => this.toggleModal(false));
+      this.setupEventListeners();
+    }
           .tv-floating-btn .tv-btn-text {
             max-width: 0;
             opacity: 0;
@@ -304,13 +406,42 @@
     }
 
     renderStep() {
-      if (this.state.loading) return `<div class="loader"></div><p style="text-align:center; font-size:12px; color:#999">Обработка...</p>`;
+      const spritePath = `${API_BASE.replace('/api/widget', '')}/widget-sprites.svg`;
+
+      if (this.state.loading && this.state.step === 'upload') {
+        return `
+          <div class="tv-progress-container">
+            <div class="tv-title">Анализируем фото</div>
+            <div class="tv-progress-bar">
+              <div class="tv-progress-fill" style="width: 35%"></div>
+            </div>
+            <div class="tv-progress-text">35%</div>
+          </div>
+        `;
+      }
+
+      if (this.state.loading && this.state.step === 'mode-select') {
+        return `
+          <div class="tv-progress-container">
+            <div class="tv-title">Собираем ваш образ</div>
+            <div class="tv-progress-bar">
+              <div class="tv-progress-fill" style="width: 65%"></div>
+            </div>
+            <div class="tv-progress-text">65%</div>
+          </div>
+        `;
+      }
 
       if (this.state.error) {
         return `
-          <div class="tv-title" style="color:#FF5252">Внимание</div>
-          <div class="tv-subtitle">${this.state.error}</div>
-          <button class="tv-main-btn" id="clear-error">Попробовать снова</button>
+          <div class="tv-error-box">
+            <div class="tv-error-icon">
+              <svg width="32" height="32"><use href="${spritePath}#tv-error"></use></svg>
+            </div>
+            <div class="tv-title" style="color:#EF4444">Фото не подходит</div>
+            <div class="tv-subtitle" style="color:#EF4444">${this.state.error}</div>
+          </div>
+          <button class="tv-main-btn" id="clear-error">Заменить фото</button>
         `;
       }
 
@@ -318,33 +449,60 @@
         case 'upload':
           return `
             <div class="tv-title">Загрузите ваше фото</div>
-            <div class="tv-subtitle">Выберите снимок в полный рост лицом к камере</div>
-            <div class="guide-grid">
-              <div class="guide-item"><img src="https://via.placeholder.com/150x200?text=OK"><div class="badge ok">✓</div></div>
-              <div class="guide-item"><img src="https://via.placeholder.com/150x200?text=NO"><div class="badge no">✕</div></div>
+            <div class="tv-subtitle">Выберите снимок в полный рост лицом к камере, где хорошо видна фигура и одежда не оверсайз</div>
+            <div class="tv-guide">
+              <div class="tv-guide-item">
+                <img src="https://skqyszemlapabfxzrgdn.supabase.co/storage/v1/object/public/assets/guide-ok.jpg" alt="OK">
+                <div class="tv-badge"><svg><use href="${spritePath}#tv-success"></use></svg></div>
+              </div>
+              <div class="tv-guide-item">
+                <img src="https://skqyszemlapabfxzrgdn.supabase.co/storage/v1/object/public/assets/guide-no.jpg" alt="NO">
+                <div class="tv-badge"><svg><use href="${spritePath}#tv-error"></use></svg></div>
+              </div>
             </div>
             <input type="file" id="file-input" accept="image/*" style="display:none">
             <button class="tv-main-btn" id="upload-trigger">Загрузить фото</button>
-            <div style="font-size: 10px; color: #999; margin-top: 12px; line-height: 1.2">
-              ${this.state.settings?.consent_html || ''}
+            <div style="font-size: 10px; color: var(--zinc-400); margin-top: 16px; line-height: 1.4">
+              Нажимая на кнопку «Загрузить фото», вы соглашаетесь с Политикой конфиденциальности и даете Согласие на обработку данных
             </div>
-            ${this.renderHistory()}
           `;
         case 'mode-select':
           return `
-            <div class="tv-title">Выберите режим</div>
-            <div style="display:flex; flex-direction:column; gap:8px">
-              <button class="tv-secondary-btn" data-mode="single">Одна вещь</button>
-              <button class="tv-secondary-btn" data-mode="outfit">Полный образ</button>
+            <div class="tv-title">Загруженное фото</div>
+            <img src="${this.state.userImage}" class="tv-user-photo-preview">
+            
+            <div class="tv-history-section">
+              <div class="tv-history-title">Загруженные ранее</div>
+              <div class="tv-history-list">
+                ${this.state.savedPhotos.map(url => `<img src="${url}" class="tv-history-item ${url === this.state.userImage ? 'active' : ''}" data-history-url="${url}">`).join('')}
+                <div class="tv-add-photo" id="add-photo-btn">
+                  <svg width="20" height="20"><use href="${spritePath}#tv-plus"></use></svg>
+                </div>
+              </div>
             </div>
-            <button class="tv-main-btn" style="margin-top:20px" id="back-to-upload">Назад</button>
+
+            <div style="margin-top: 32px">
+              <div class="tv-title" style="font-size: 14px; margin-bottom: 16px">Выберите, что хотите примерить</div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px">
+                <button class="tv-secondary-btn" data-mode="outfit">Полный образ</button>
+                <button class="tv-secondary-btn" data-mode="single">Платье</button>
+              </div>
+              <button class="tv-main-btn" style="margin-top:24px" id="start-tryon">Продолжить</button>
+            </div>
           `;
         case 'result':
           return `
-            <div class="tv-title">Ваша примерка</div>
-            <img src="${this.state.resultImage}" style="width:100%; border-radius:12px; margin-bottom:16px">
-            <button class="tv-main-btn" onclick="window.open('${this.state.resultImage}', '_blank')">Скачать результат</button>
-            <button class="tv-secondary-btn" style="margin-top:8px" id="new-try">Новая примерка</button>
+            <div class="tv-title">Ваш образ готов</div>
+            <div style="position:relative; margin-bottom:24px">
+              <img src="${this.state.resultImage}" style="width:100%; border-radius:20px; aspect-ratio:3/4; object-fit:cover">
+              <div style="position:absolute; top:16px; right:16px; width:32px; height:32px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer">
+                <svg width="20" height="20"><use href="${spritePath}#tv-zoom"></use></svg>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px">
+              <button class="tv-secondary-btn" id="new-try">Новый образ</button>
+              <button class="tv-main-btn" id="more-actions">Ещё</button>
+            </div>
           `;
       }
     }
@@ -366,10 +524,27 @@
         this.shadowRoot.getElementById('file-input').click();
       });
 
+      this.shadowRoot.getElementById('add-photo-btn')?.addEventListener('click', () => {
+        this.state.step = 'upload';
+        this.render();
+      });
+
       this.shadowRoot.getElementById('file-input')?.addEventListener('change', (e) => this.handleFileUpload(e));
 
       this.shadowRoot.querySelectorAll('[data-mode]').forEach(btn => {
-        btn.addEventListener('click', () => this.handleTryOn(btn.dataset.mode));
+        btn.addEventListener('click', () => {
+          this.shadowRoot.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.state.selectedMode = btn.dataset.mode;
+        });
+      });
+
+      this.shadowRoot.getElementById('start-tryon')?.addEventListener('click', () => {
+        if (this.state.selectedMode) {
+          this.handleTryOn(this.state.selectedMode);
+        } else {
+          alert('Пожалуйста, выберите режим примерки');
+        }
       });
 
       this.shadowRoot.getElementById('new-try')?.addEventListener('click', () => {

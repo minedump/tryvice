@@ -221,11 +221,16 @@ export default function ProductsPage() {
                           <IconExternalLink size={14} />
                         </a>
                       </div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">ID: {product.external_id}</div>
                     </td>
                     <td className="px-4 py-5 text-sm font-medium whitespace-nowrap">
                       {new Intl.NumberFormat('ru-RU').format(product.price)} ₽
                     </td>
-                    <td className="px-4 py-5 text-sm text-zinc-600">{product.category || '—'}</td>
+                    <td className="px-4 py-5">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-50 text-zinc-700 border border-zinc-100">
+                        {product.category || '—'}
+                      </span>
+                    </td>
                     <td className="px-4 py-5">
                       {product.available !== false ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -237,8 +242,8 @@ export default function ProductsPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-5 text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${product.product_images[0]?.count > 0 ? 'bg-zinc-100 text-zinc-800' : 'bg-red-50 text-red-700'}`}>
+                    <td className="px-4 py-5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${product.product_images[0]?.count > 0 ? 'border-zinc-100 bg-zinc-50 text-zinc-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
                         {product.product_images[0]?.count || 0}
                       </span>
                     </td>

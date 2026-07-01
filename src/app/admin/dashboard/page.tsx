@@ -5,6 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useShop } from '@/context/ShopContext';
 import Input from '@/components/Input';
 import Tabs from '@/components/Tabs';
+import { IconExternalLink } from '@tabler/icons-react';
 
 export default function DashboardPage() {
   const supabase = createClientComponentClient();
@@ -54,7 +55,7 @@ export default function DashboardPage() {
       .from('generations')
       .select(`
         product_id,
-        products (id, name, category, price)
+        products (id, external_id, name, category, price, url)
       `)
       .eq('shop_id', currentShop.id)
       .gte('created_at', startDate.toISOString())
@@ -84,7 +85,8 @@ export default function DashboardPage() {
 
   const filteredProducts = stats.popularProducts.filter(p => 
     p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.external_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!currentShop) return <div className="p-10 text-zinc-400">Выберите магазин для просмотра статистики</div>;
@@ -157,12 +159,17 @@ export default function DashboardPage() {
                 filteredProducts.map((product: any) => (
                   <tr key={product.id} className="hover:bg-zinc-50/50 transition-colors">
                     <td className="px-8 py-4">
-                      <div className="text-sm font-bold text-zinc-900">{product.name}</div>
-                      <div className="text-[10px] text-zinc-400">ID: {product.id.split('-')[0]}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-zinc-600">{product.name}</span>
+                        <a href={product.url} target="_blank" className="text-zinc-300 hover:text-black transition-colors shrink-0">
+                          <IconExternalLink size={14} />
+                        </a>
+                      </div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">ID: {product.external_id}</div>
                     </td>
                     <td className="px-8 py-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-600 uppercase tracking-wider">
-                        {product.category || 'Без категории'}
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-50 text-zinc-700 border border-zinc-100">
+                        {product.category || '—'}
                       </span>
                     </td>
                     <td className="px-8 py-4 text-right">

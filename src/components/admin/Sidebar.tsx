@@ -35,7 +35,7 @@ export default function Sidebar() {
       {isSuperAdmin && !currentShop ? (
         <div></div>
       ) : (
-        <div className="p-4 border-b border-zinc-100">
+        <div className="py-4 px-8 border-b border-zinc-100">
           <div className="text-sm font-bold truncate">
             {currentShop?.name || 'Не выбран'}
           </div>

@@ -99,7 +99,7 @@ export default function PromptsPage() {
 
       <div className="space-y-8">
         <PromptBlock 
-          title="Генерация (Try-On)"
+          title="Генерация примерки"
           prompt={settings.prompt_generation}
           model={settings.model_generation}
           provider={settings.provider_generation}
@@ -125,7 +125,7 @@ export default function PromptsPage() {
         />
 
         <PromptBlock 
-          title="Классификация товаров (Фид)"
+          title="Классификация фото из фида"
           prompt={settings.prompt_classification}
           model={settings.model_classification}
           provider={settings.provider_classification}
@@ -178,7 +178,7 @@ function PromptBlock({ title, prompt, model, provider, models, onPromptChange, o
             </div>
           </div>
           <div className="space-y-1">
-            <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Используемая модель</label>
+            <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Модель</label>
             <div className="relative">
               <select 
                 className={selectStyles}
