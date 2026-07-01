@@ -32,11 +32,29 @@ export async function POST(req: Request) {
 
   try {
     const supabase = getSupabase();
-    const { shop_id, product_id, user_image_url, type, visitor_id } = await req.json();
+    const { shop_id, product_id, user_image_url, type, visitor_id, page_url } = await req.json();
 
     // 1. Валидация входных данных
-    if (!shop_id || !product_id || !user_image_url || !type) {
+    if (!shop_id || !user_image_url || !type) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400, headers: getCorsHeaders(origin) });
+    }
+
+    let finalProductId = product_id;
+
+    // 2. Если ID товара не передан, ищем по URL
+    if (!finalProductId || finalProductId === 'null') {
+      const { data: productByUrl } = await supabase
+        .from('products')
+        .select('id')
+        .eq('shop_id', shop_id)
+        .eq('url', page_url)
+        .maybeSingle();
+
+      if (productByUrl) {
+        finalProductId = productByUrl.id;
+      } else {
+        return NextResponse.json({ error: 'Product not found by URL' }, { status: 404, headers: getCorsHeaders(origin) });
+      }
     }
 
     // 2. Проверка баланса магазина и получение настроек
@@ -54,7 +72,7 @@ export async function POST(req: Request) {
     const { data: productImages, error: imgError } = await supabase
       .from('product_images')
       .select('url')
-      .eq('product_id', product_id)
+      .eq('product_id', finalProductId)
       .eq('type', type === 'outfit' ? 'outfit' : 'product')
       .order('is_preferred', { ascending: false })
       .limit(2);
@@ -71,7 +89,7 @@ export async function POST(req: Request) {
       .from('generations')
       .insert({
         shop_id,
-        product_id,
+        product_id: finalProductId,
         visitor_id,
         user_image_url: 'pending', // Обновим после загрузки
         type,

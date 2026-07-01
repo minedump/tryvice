@@ -147,12 +147,16 @@
       try {
         const res = await fetch(`${API_BASE}/tryon`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             shop_id: this.getAttribute('data-shop-id'),
             product_id: this.getAttribute('data-product-id'),
             user_image_url: this.state.userImage,
             type: mode,
-            visitor_id: this.visitorId
+            visitor_id: this.visitorId,
+            page_url: window.location.href
           })
         });
         const data = await res.json();
