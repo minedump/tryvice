@@ -14,31 +14,27 @@ const getSupabase = () => createClient(
   }
 );
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+const getCorsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin || '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+});
 
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get('origin');
+  return NextResponse.json({}, { headers: getCorsHeaders(origin) });
 }
 
 export async function POST(req: Request) {
+  const origin = req.headers.get('origin');
+  
   try {
     const supabase = getSupabase();
     const { shop_id, domain } = await req.json();
 
-    console.log(`[WidgetInit] URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
-    console.log(`[WidgetInit] Request for shop_id: ${shop_id} from domain: ${domain}`);
-
     if (!shop_id) {
-      return NextResponse.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
+      return NextResponse.json({ error: 'Missing shop_id' }, { status: 400, headers: getCorsHeaders(origin) });
     }
-
-    // Тестовый запрос: видим ли мы хоть что-то в таблице?
-    const { count: debugCount } = await supabase.from('shops').select('*', { count: 'exact', head: true });
-    console.log(`[WidgetInit] Total shops visible to client: ${debugCount}`);
 
     // Получаем данные магазина
     const { data: shop, error } = await supabase
@@ -48,32 +44,37 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (error || !shop) {
-      console.error(`[WidgetInit] Shop not found. ID: ${shop_id}. Total visible: ${debugCount}. Error:`, error);
-      return NextResponse.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404, headers: getCorsHeaders(origin) });
     }
 
     // Проверка домена (обязательно для CORS и безопасности)
     if (!shop.domain) {
-      return NextResponse.json({ error: 'Shop domain not configured' }, { status: 403, headers: corsHeaders });
+      return NextResponse.json({ error: 'Shop domain not configured' }, { status: 403, headers: getCorsHeaders(origin) });
     }
 
-    if (domain && !domain.includes(shop.domain.replace('https://', '').replace('http://', ''))) {
-      return NextResponse.json({ error: 'Invalid domain' }, { status: 403, headers: corsHeaders });
+    const cleanShopDomain = shop.domain.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
+    const cleanRequestDomain = (domain || '').replace('www.', '');
+
+    if (cleanRequestDomain && !cleanRequestDomain.includes(cleanShopDomain)) {
+      return NextResponse.json({ error: 'Invalid domain' }, { status: 403, headers: getCorsHeaders(origin) });
     }
+
+    // Если всё ок, используем origin из запроса для заголовка
+    const headers = getCorsHeaders(origin);
 
     // Проверка баланса
     if (shop.remaining_generations <= 0) {
       return NextResponse.json({ 
         active: false, 
         reason: 'Insufficient balance' 
-      }, { headers: corsHeaders });
+      }, { headers });
     }
 
     return NextResponse.json({
       active: true,
       settings: shop.widget_settings,
       shop_name: shop.name
-    }, { headers: corsHeaders });
+    }, { headers });
 
   } catch (err) {
     console.error('Widget init error:', err);

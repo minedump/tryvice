@@ -16,24 +16,27 @@ const getSupabase = () => createClient(
   }
 );
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+const getCorsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin || '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+});
 
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get('origin');
+  return NextResponse.json({}, { headers: getCorsHeaders(origin) });
 }
 
 export async function POST(req: Request) {
+  const origin = req.headers.get('origin');
+
   try {
     const supabase = getSupabase();
     const { shop_id, product_id, user_image_url, type, visitor_id } = await req.json();
 
     // 1. Валидация входных данных
     if (!shop_id || !product_id || !user_image_url || !type) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400, headers: corsHeaders });
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400, headers: getCorsHeaders(origin) });
     }
 
     // 2. Проверка баланса магазина и получение настроек
@@ -44,7 +47,7 @@ export async function POST(req: Request) {
       .single();
 
     if (shopError || !shop || !shop.is_active || shop.remaining_generations <= 0) {
-      return NextResponse.json({ error: 'Service unavailable or insufficient balance' }, { status: 403, headers: corsHeaders });
+      return NextResponse.json({ error: 'Service unavailable or insufficient balance' }, { status: 403, headers: getCorsHeaders(origin) });
     }
 
     // 3. Поиск изображений товара (берем до 2-х штук согласно ТЗ)
@@ -57,7 +60,7 @@ export async function POST(req: Request) {
       .limit(2);
 
     if (imgError || !productImages || productImages.length === 0) {
-      return NextResponse.json({ error: 'Product images not found for this type' }, { status: 404, headers: corsHeaders });
+      return NextResponse.json({ error: 'Product images not found for this type' }, { status: 404, headers: getCorsHeaders(origin) });
     }
 
     // Используем первое (приоритетное) изображение для генерации
@@ -121,7 +124,7 @@ export async function POST(req: Request) {
         success: true,
         generation_id: generation.id,
         result_url: finalResultUrl
-      }, { headers: corsHeaders });
+      }, { headers: getCorsHeaders(origin) });
 
     } catch (aiError: any) {
       // Обработка ошибки генерации
@@ -135,6 +138,6 @@ export async function POST(req: Request) {
 
   } catch (err: any) {
     console.error('Try-on error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ error: err.message }, { status: 500, headers: getCorsHeaders(origin) });
   }
 }
