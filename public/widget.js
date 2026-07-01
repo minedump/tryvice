@@ -176,7 +176,7 @@
     async trackEvent(eventType) {
       try {
         const shopId = this.getAttribute('data-shop-id');
-        await fetch('/api/analytics/track', {
+        await fetch(`${API_BASE}/track`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
