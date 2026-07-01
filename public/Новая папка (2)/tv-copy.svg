@@ -1,7 +1,0 @@
-<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20.000000" height="20.000000" fill="none">
-	<rect id="Frame" width="20.000000" height="20.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
-	<path id="Vector" d="M0 0L20 0L20 20L0 20L0 0Z" fill-rule="nonzero" />
-	<path id="Vector" d="M7.5 12.5L12.5 7.5" stroke="rgb(0,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.250000" />
-	<path id="Vector" d="M9.16675 4.99993L9.55258 4.55326C10.3341 3.77187 11.394 3.33293 12.4991 3.33301C13.6043 3.33309 14.6641 3.77217 15.4455 4.55368C16.2269 5.33518 16.6658 6.39509 16.6658 7.50022C16.6657 8.60536 16.2266 9.6652 15.4451 10.4466L15.0001 10.8333" stroke="rgb(0,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.250000" />
-	<path id="Vector" d="M10.8334 15L10.5025 15.445C9.71191 16.2268 8.64486 16.6653 7.53295 16.6653C6.42105 16.6653 5.354 16.2268 4.56337 15.445C4.17367 15.0596 3.86428 14.6008 3.65313 14.0951C3.44198 13.5893 3.33325 13.0468 3.33325 12.4987C3.33325 11.9507 3.44198 11.4081 3.65313 10.9023C3.86428 10.3966 4.17367 9.93779 4.56337 9.55246L5.00004 9.16663" stroke="rgb(0,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.250000" />
-</svg>

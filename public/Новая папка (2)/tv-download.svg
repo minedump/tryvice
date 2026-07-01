@@ -1,7 +1,0 @@
-<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20.000000" height="20.000000" fill="none">
-	<rect id="Frame" width="20.000000" height="20.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
-	<path id="Vector" d="M0 0L20 0L20 20L0 20L0 0Z" fill-rule="nonzero" />
-	<path id="Vector" d="M3.33325 14.1666L3.33325 15.8333C3.33325 16.2753 3.50885 16.6992 3.82141 17.0118C4.13397 17.3244 4.55789 17.5 4.99992 17.5L14.9999 17.5C15.4419 17.5 15.8659 17.3244 16.1784 17.0118C16.491 16.6992 16.6666 16.2753 16.6666 15.8333L16.6666 14.1666" stroke="rgb(0,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.250000" />
-	<path id="Vector" d="M5.83325 9.16669L9.99992 13.3334L14.1666 9.16669" stroke="rgb(0,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.250000" />
-	<path id="Vector" d="M0 0L10 0" stroke="rgb(0,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.250000" transform="matrix(0,1,-1,0,10,3.33331)" />
-</svg>

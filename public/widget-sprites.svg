@@ -21,4 +21,21 @@
     <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
     <path d="M11 8V14M8 11H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
   </symbol>
+  <symbol id="tv-download" viewBox="0 0 20 20">
+    <path d="M3.33325 14.1666L3.33325 15.8333C3.33325 16.2753 3.50885 16.6992 3.82141 17.0118C4.13397 17.3244 4.55789 17.5 4.99992 17.5L14.9999 17.5C15.4419 17.5 15.8659 17.3244 16.1784 17.0118C16.491 16.6992 16.6666 16.2753 16.6666 15.8333L16.6666 14.1666" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M5.83325 9.16669L9.99992 13.3334L14.1666 9.16669" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M10 3.33331V13.3333" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+  </symbol>
+  <symbol id="tv-copy" viewBox="0 0 20 20">
+    <path d="M7.5 12.5L12.5 7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M9.16675 4.99993L9.55258 4.55326C10.3341 3.77187 11.394 3.33293 12.4991 3.33301C13.6043 3.33309 14.6641 3.77217 15.4455 4.55368C16.2269 5.33518 16.6658 6.39509 16.6658 7.50022C16.6657 8.60536 16.2266 9.6652 15.4451 10.4466L15.0001 10.8333" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M10.8334 15L10.5025 15.445C9.71191 16.2268 8.64486 16.6653 7.53295 16.6653C6.42105 16.6653 5.354 16.2268 4.56337 15.445C4.17367 15.0596 3.86428 14.6008 3.65313 14.0951C3.44198 13.5893 3.33325 13.0468 3.33325 12.4987C3.33325 11.9507 3.44198 11.4081 3.65313 10.9023C3.86428 10.3966 4.17367 9.93779 4.56337 9.55246L5.00004 9.16663" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+  </symbol>
+  <symbol id="tv-trash" viewBox="0 0 20 20">
+    <path d="M3.33337 5.83337L16.6667 5.83337" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M8.33337 9.16669V14.1667" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M11.6666 9.16669V14.1667" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M4.16663 5.83337L4.99996 15.8334C4.99996 16.2754 5.17555 16.6993 5.48811 17.0119C5.80068 17.3244 6.2246 17.5 6.66663 17.5L13.3333 17.5C13.7753 17.5 14.1992 17.3244 14.5118 17.0119C14.8244 16.6993 14.9999 16.2754 14.9999 15.8334L15.8333 5.83337" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+    <path d="M7.5 5.83333L7.5 3.33333C7.5 3.11232 7.5878 2.90036 7.74408 2.74408C7.90036 2.5878 8.11232 2.5 8.33333 2.5L11.6667 2.5C11.8877 2.5 12.0996 2.5878 12.2559 2.74408C12.4122 2.90036 12.5 3.11232 12.5 3.33333L12.5 5.83333" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" />
+  </symbol>
 </svg>
