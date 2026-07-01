@@ -107,10 +107,10 @@ export class AIService {
   }
 
   private static async requestGemini(body: any) {
-    const model = body.model.replace('google/', '');
-    const url = `${GEMINI_API_URL}/${model}:generateContent?key=${GEMINI_API_KEY}`;
+    const modelName = body.model.includes('/') ? body.model : `models/${body.model}`;
+    const url = `${GEMINI_API_URL}/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
     
-    console.log(`[AIService] Sending request to Google Gemini: ${model}`);
+    console.log(`[AIService] Sending request to Google Gemini: ${modelName}`);
 
     // Конвертируем формат OpenAI в формат Gemini с поддержкой base64
     const contents = await Promise.all(body.messages.map(async (m: any) => {
