@@ -406,7 +406,8 @@
     }
 
     renderStep() {
-      const spritePath = `${API_BASE.replace('/api/widget', '')}/widget-sprites.svg`;
+      const baseUrl = API_BASE.replace('/api/widget', '');
+      const spritePath = `${baseUrl}/widget-sprites.svg`;
 
       if (this.state.loading && this.state.step === 'upload') {
         return `
@@ -452,11 +453,11 @@
             <div class="tv-subtitle">Выберите снимок в полный рост лицом к камере, где хорошо видна фигура и одежда не оверсайз</div>
             <div class="tv-guide">
               <div class="tv-guide-item">
-                <img src="https://skqyszemlapabfxzrgdn.supabase.co/storage/v1/object/public/assets/guide-ok.jpg" alt="OK">
+                <img src="${baseUrl}/guide-ok.webp" alt="OK">
                 <div class="tv-badge"><svg><use href="${spritePath}#tv-success"></use></svg></div>
               </div>
               <div class="tv-guide-item">
-                <img src="https://skqyszemlapabfxzrgdn.supabase.co/storage/v1/object/public/assets/guide-no.jpg" alt="NO">
+                <img src="${baseUrl}/guide-no.webp" alt="NO">
                 <div class="tv-badge"><svg><use href="${spritePath}#tv-error"></use></svg></div>
               </div>
             </div>
