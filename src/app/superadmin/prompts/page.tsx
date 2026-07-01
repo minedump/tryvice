@@ -4,6 +4,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Button from '@/components/Button';
 import Toast from '@/components/Toast';
 import Input from '@/components/Input';
+import Select from '@/components/Select';
 
 export default function PromptsPage() {
   const supabase = createClientComponentClient();
