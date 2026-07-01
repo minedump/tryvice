@@ -23,6 +23,8 @@ export async function POST(req: Request) {
     const supabase = getSupabase();
     const { shop_id, domain } = await req.json();
 
+    console.log(`[WidgetInit] Request for shop_id: ${shop_id} from domain: ${domain}`);
+
     if (!shop_id) {
       return NextResponse.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
     }
@@ -35,6 +37,7 @@ export async function POST(req: Request) {
       .single();
 
     if (error || !shop) {
+      console.error(`[WidgetInit] Shop not found in DB. ID: ${shop_id}, Error:`, error);
       return NextResponse.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
 
