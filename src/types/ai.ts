@@ -14,8 +14,8 @@ export type GenerationRequest = {
 };
 
 export type NanoBananaResponse = {
-  id: string;
-  status: 'pending' | 'completed' | 'failed';
-  output_url?: string;
+  id?: string;
+  status?: 'pending' | 'completed' | 'failed';
+  image_url: string;
   error?: string;
 };

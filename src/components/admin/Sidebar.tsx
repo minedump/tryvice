@@ -33,26 +33,12 @@ export default function Sidebar() {
   return (
     <aside className="w-72 bg-white border-r border-zinc-200 flex flex-col">
       {isSuperAdmin && !currentShop ? (
-        <div className="mt-6"></div>
+        <div></div>
       ) : (
-        <div className="p-6 border-b border-zinc-100">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
-            {isSuperAdmin ? 'Просмотр магазина' : 'Текущий магазин'}
-          </div>
+        <div className="p-4 border-b border-zinc-100">
           <div className="text-sm font-bold truncate">
             {currentShop?.name || 'Не выбран'}
           </div>
-          {currentShop && (
-            <div className="mt-1">
-              <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest ${
-                currentShop.is_active 
-                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                  : 'bg-red-50 text-red-600 border border-red-100'
-              }`}>
-                {currentShop.is_active ? 'Активен' : 'Заблокирован'}
-              </span>
-            </div>
-          )}
         </div>
       )}
 

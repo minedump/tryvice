@@ -1,12 +1,13 @@
-import { ImageAnalysisResult, NanoBananaResponse } from '@/types/ai';
+import 'server-only';
+import { ImageAnalysisResult } from '@/types/ai';
 import { createClient } from '@supabase/supabase-js';
 
-const API_KEY = process.env.NANOBANANA_API_KEY;
-const API_URL = (process.env.NANOBANANA_API_URL || 'https://kodikrouter.ru/api/v1').replace(/\/$/, '');
+const API_KEY = process.env.KODIKROUTER_API_KEY || '';
+const API_URL = process.env.KODIKROUTER_API_URL || 'https://api.kodikrouter.ru/v1/chat/completions';
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 export class AIService {
@@ -16,31 +17,25 @@ export class AIService {
     if (this.cachedSettings) return this.cachedSettings;
     
     const supabase = getSupabase();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('platform_settings')
       .select('*')
       .eq('id', 1)
       .maybeSingle();
 
-    this.cachedSettings = data || {
-      prompt_generation: "Virtual try-on: put the clothing from the product image onto the person in the user image.",
-      prompt_moderation: "Analyze the photo. Is it suitable for virtual clothing try-on? Requirements: person visible in full height or waist-up, clear image, no objects blocking the body. Return JSON: { \"suitable\": boolean, \"reason\": string | null }",
-      prompt_classification: "Is this image a single product on a neutral background (flat lay or headless mannequin) or an 'outfit' (look) — a model in full height with surroundings? Also determine if the object is actually clothing. Return JSON: { \"type\": \"product\" | \"outfit\", \"is_clothing\": boolean }",
-      model_generation: 'google/gemini-1.5-pro',
-      model_moderation: 'google/gemini-1.5-flash',
-      model_classification: 'google/gemini-1.5-flash'
-    };
-    
-    return this.cachedSettings;
+    if (error || !data) {
+      console.error('[AIService] Platform settings not found in DB!');
+      throw new Error('AI settings not configured. Please set them in Superadmin panel.');
+    }
+
+    this.cachedSettings = data;
+    return data;
   }
 
-  public static async request(endpoint: string, body: any) {
-    // Итоговый путь согласно документации и вашему примеру
-    const fullUrl = 'https://api.kodikrouter.ru/v1/chat/completions';
-    console.log(`[AIService] Sending request to: ${fullUrl}`);
+  public static async request(body: any) {
+    console.log(`[AIService] Sending request to: ${API_URL}`);
     
-    const response = await fetch(fullUrl, {
-
+    const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
@@ -51,22 +46,13 @@ export class AIService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      // Если вернулся HTML (обычно это 404 страница), выводим только статус
-      if (errorText.includes('<!DOCTYPE html>') || response.status === 404) {
-        console.error(`[AIService] Error Response from ${fullUrl}: Status ${response.status} (Page not found)`);
-        throw new Error(`AI Service Error: Status ${response.status}`);
-      }
-      
-      console.error(`[AIService] Error Response from ${fullUrl}:`, errorText);
+      console.error(`[AIService] Error Response from ${API_URL}:`, errorText);
       throw new Error(`AI Service Error: ${errorText}`);
     }
 
     return response.json();
   }
 
-  /**
-   * ТЕСТОВЫЙ МЕТОД: Проверка доступности модели без картинки
-   */
   /**
    * Анализ изображения (модерация или классификация товара)
    */
@@ -77,7 +63,7 @@ export class AIService {
 
     console.log(`[AIService] Analyzing image via ${model}: ${imageUrl}`);
 
-    const data = await this.request('/chat/completions', {
+    const data = await this.request({
       model: model,
       messages: [
         {
@@ -99,8 +85,7 @@ export class AIService {
     const content = data.choices[0].message.content;
     console.log(`[AIService] AI Response for ${mode}:`, content);
     
-    const result = JSON.parse(content) as ImageAnalysisResult;
-    return result;
+    return JSON.parse(content) as ImageAnalysisResult;
   }
 
   /**
@@ -108,14 +93,20 @@ export class AIService {
    */
   static async generateTryOn(userImageUrl: string, productImageUrl: string, type: 'single' | 'outfit'): Promise<string> {
     const settings = await this.getSettings();
+    const model = settings.model_generation;
     
-    const data = await this.request('/chat/completions', {
-      model: settings.model_generation,
+    console.log(`[AIService] Generating try-on via KodikRouter. Model: ${model}, Type: ${type}`);
+
+    const data = await this.request({
+      model: model,
       messages: [
         {
           role: 'user',
           content: [
-            { type: 'text', text: `${settings.prompt_generation} Mode: ${type}` },
+            { 
+              type: 'text', 
+              text: `${settings.prompt_generation} Mode: ${type}. Category: ${type === 'outfit' ? 'overall' : 'top'}` 
+            },
             {
               type: 'image_url',
               image_url: { url: userImageUrl }
@@ -129,9 +120,9 @@ export class AIService {
       ]
     });
 
-    // В OpenAI-совместимом формате результат обычно приходит в тексте (ссылка) 
-    // или в специфическом поле, если это мультимодальная генерация.
-    // Если модель возвращает ссылку в тексте:
-    return data.choices[0].message.content; 
+    const content = data.choices[0].message.content;
+    console.log(`[AIService] AI Response for generation:`, content);
+    
+    return content.trim();
   }
 }

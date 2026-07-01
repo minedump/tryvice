@@ -63,8 +63,8 @@ export default function ClientsPage() {
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr>
-                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 w-1/3">Название магазина</th>
-                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Баланс примерок</th>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 w-1/3">Название</th>
+                <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Баланс</th>
                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Домен</th>
                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Статус</th>
                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-right">Активность</th>
@@ -92,7 +92,7 @@ export default function ClientsPage() {
                           }}
                           className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors mt-1"
                         >
-                          Войти в магазин <IconExternalLink size={12} />
+                          Войти <IconExternalLink size={12} />
                         </button>
                       </div>
                     </div>

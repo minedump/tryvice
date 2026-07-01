@@ -30,19 +30,21 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Service unavailable or insufficient balance' }, { status: 403 });
     }
 
-    // 3. Поиск подходящего изображения товара (ранее классифицированного парсером)
-    const { data: productImage, error: imgError } = await supabase
+    // 3. Поиск изображений товара (берем до 2-х штук согласно ТЗ)
+    const { data: productImages, error: imgError } = await supabase
       .from('product_images')
       .select('url')
       .eq('product_id', product_id)
       .eq('type', type === 'outfit' ? 'outfit' : 'product')
       .order('is_preferred', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(2);
 
-    if (imgError || !productImage) {
-      return Response.json({ error: 'Product image not found for this type' }, { status: 404 });
+    if (imgError || !productImages || productImages.length === 0) {
+      return Response.json({ error: 'Product images not found for this type' }, { status: 404 });
     }
+
+    // Используем первое (приоритетное) изображение для генерации
+    const productImageUrl = productImages[0].url;
 
     // 4. Создание записи о генерации в статусе 'processing'
     const { data: generation, error: genError } = await supabase
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
       // 5. Запрос к NanoBanana
       const tempResultUrl = await AIService.generateTryOn(
         userStorageUrl,
-        productImage.url,
+        productImageUrl,
         type
       );
 

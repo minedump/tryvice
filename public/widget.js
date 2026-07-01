@@ -111,19 +111,23 @@
         try {
           const res = await fetch(`${API_BASE}/analyze-image`, {
             method: 'POST', 
-            body: JSON.stringify({ image_url: base64, shop_id: this.getAttribute('data-shop-id') })
+            body: JSON.stringify({ 
+              image_url: base64, 
+              shop_id: this.getAttribute('data-shop-id'),
+              visitor_id: this.visitorId
+            })
           });
           const analysis = await res.json();
 
           if (analysis.suitable) {
-            this.state.userImage = base64;
+            this.state.userImage = analysis.image_url; // Используем URL из Storage
             this.state.step = 'mode-select';
-            this.saveToHistory('photo', base64);
+            this.saveToHistory('photo', analysis.image_url);
           } else {
-            alert('Фото не подходит: ' + (analysis.reason || 'попробуйте другое'));
+            this.state.error = analysis.reason || 'Это фото не подходит для примерки. Попробуйте другое.';
           }
         } catch (err) {
-          alert('Ошибка при анализе фото');
+          this.state.error = 'Ошибка при анализе фото. Попробуйте позже.';
         }
         
         this.state.loading = false;
@@ -258,6 +262,14 @@
     renderStep() {
       if (this.state.loading) return `<div class="loader"></div><p style="text-align:center; font-size:12px; color:#999">Обработка...</p>`;
 
+      if (this.state.error) {
+        return `
+          <div class="tv-title" style="color:#FF5252">Внимание</div>
+          <div class="tv-subtitle">${this.state.error}</div>
+          <button class="tv-main-btn" id="clear-error">Попробовать снова</button>
+        `;
+      }
+
       switch(this.state.step) {
         case 'upload':
           return `
@@ -322,6 +334,13 @@
       });
 
       this.shadowRoot.getElementById('back-to-upload')?.addEventListener('click', () => {
+        this.state.step = 'upload';
+        this.state.error = null;
+        this.render();
+      });
+
+      this.shadowRoot.getElementById('clear-error')?.addEventListener('click', () => {
+        this.state.error = null;
         this.state.step = 'upload';
         this.render();
       });

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useShop } from '@/context/ShopContext';
 import Input from '@/components/Input';
+import Tabs from '@/components/Tabs';
 
 export default function DashboardPage() {
   const supabase = createClientComponentClient();
@@ -95,23 +96,15 @@ export default function DashboardPage() {
           <h2 className="text-3xl font-bold tracking-tight">Дашборд</h2>
         </div>
 
-        <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm">
-          {[ 
+        <Tabs 
+          tabs={[
             { id: 'today', label: 'Сегодня' },
             { id: 'week', label: 'Неделя' },
             { id: 'month', label: 'Месяц' }
-          ].map((range) => (
-            <button
-              key={range.id}
-              onClick={() => setDateRange(range.id)}
-              className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${
-                dateRange === range.id ? 'bg-black text-white' : 'text-zinc-400 hover:text-black'
-              }`}
-            >
-              {range.label}
-            </button>
-          ))}
-        </div>
+          ]}
+          activeTab={dateRange}
+          onChange={setDateRange}
+        />
       </div>
 
       {/* Статистика */}

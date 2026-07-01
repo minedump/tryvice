@@ -12,11 +12,16 @@ export default function PromptsPage() {
   const [toast, setToast] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
 
-  const AVAILABLE_MODELS = [
-    'google/gemini-1.5-pro',
-    'google/gemini-1.5-flash',
-    'google/gemini-2.0-flash-exp',
+  const ANALYTIC_MODELS = [
     'openai/gpt-4o-mini',
+    'openai/gpt-4o',
+    'google/gemini-2.0-flash-exp',
+    'google/gemini-1.5-flash'
+  ];
+
+  const GENERATIVE_MODELS = [
+    'openai/gpt-5-image',
+    'nanobanana',
     'openai/gpt-4o'
   ];
 
@@ -76,7 +81,7 @@ export default function PromptsPage() {
           title="Генерация (Try-On)"
           prompt={settings.prompt_generation}
           model={settings.model_generation}
-          models={AVAILABLE_MODELS}
+          models={GENERATIVE_MODELS}
           onPromptChange={(val: string) => setSettings({ ...settings, prompt_generation: val })}
           onModelChange={(val: string) => setSettings({ ...settings, model_generation: val })}
           onSave={() => handleSave('generation')}
@@ -87,7 +92,7 @@ export default function PromptsPage() {
           title="Модерация фото пользователя"
           prompt={settings.prompt_moderation}
           model={settings.model_moderation}
-          models={AVAILABLE_MODELS}
+          models={ANALYTIC_MODELS}
           onPromptChange={(val: string) => setSettings({ ...settings, prompt_moderation: val })}
           onModelChange={(val: string) => setSettings({ ...settings, model_moderation: val })}
           onSave={() => handleSave('moderation')}
@@ -98,7 +103,7 @@ export default function PromptsPage() {
           title="Классификация товаров (Фид)"
           prompt={settings.prompt_classification}
           model={settings.model_classification}
-          models={AVAILABLE_MODELS}
+          models={ANALYTIC_MODELS}
           onPromptChange={(val: string) => setSettings({ ...settings, prompt_classification: val })}
           onModelChange={(val: string) => setSettings({ ...settings, model_classification: val })}
           onSave={() => handleSave('classification')}
