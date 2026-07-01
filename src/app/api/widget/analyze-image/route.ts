@@ -18,7 +18,7 @@ const getSupabase = () => createClient(
 );
 
 const getCorsHeaders = (origin: string | null) => ({
-  'Access-Control-Allow-Origin': origin || '*',
+  'Access-Control-Allow-Origin': origin || '',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 });

@@ -15,7 +15,7 @@ const getSupabase = () => createClient(
 );
 
 const getCorsHeaders = (origin: string | null) => ({
-  'Access-Control-Allow-Origin': origin || '*',
+  'Access-Control-Allow-Origin': origin || '',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 });
@@ -76,8 +76,8 @@ export async function POST(req: Request) {
       shop_name: shop.name
     }, { headers });
 
-  } catch (err) {
-    console.error('Widget init error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders });
-  }
+    } catch (err) {
+      console.error('Widget init error:', err);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: getCorsHeaders(origin) });
+    }
 }
