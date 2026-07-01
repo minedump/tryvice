@@ -1,6 +1,7 @@
 import { AIService } from '@/lib/ai-service';
 import { StorageService } from '@/lib/storage';
 import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,7 @@ const corsHeaders = {
 };
 
 export async function OPTIONS() {
-  return Response.json({}, { headers: corsHeaders });
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function POST(req: Request) {
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
 
     // 1. Валидация входных данных
     if (!shop_id || !product_id || !user_image_url || !type) {
-      return Response.json({ error: 'Missing required parameters' }, { status: 400, headers: corsHeaders });
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400, headers: corsHeaders });
     }
 
     // 2. Проверка баланса магазина и получение настроек
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
       .single();
 
     if (shopError || !shop || !shop.is_active || shop.remaining_generations <= 0) {
-      return Response.json({ error: 'Service unavailable or insufficient balance' }, { status: 403, headers: corsHeaders });
+      return NextResponse.json({ error: 'Service unavailable or insufficient balance' }, { status: 403, headers: corsHeaders });
     }
 
     // 3. Поиск изображений товара (берем до 2-х штук согласно ТЗ)
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
       .limit(2);
 
     if (imgError || !productImages || productImages.length === 0) {
-      return Response.json({ error: 'Product images not found for this type' }, { status: 404, headers: corsHeaders });
+      return NextResponse.json({ error: 'Product images not found for this type' }, { status: 404, headers: corsHeaders });
     }
 
     // Используем первое (приоритетное) изображение для генерации
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
 
       if (updateError) throw updateError;
 
-      return Response.json({
+      return NextResponse.json({
         success: true,
         generation_id: generation.id,
         result_url: finalResultUrl
@@ -128,6 +129,6 @@ export async function POST(req: Request) {
 
   } catch (err: any) {
     console.error('Try-on error:', err);
-    return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ error: err.message }, { status: 500, headers: corsHeaders });
   }
 }

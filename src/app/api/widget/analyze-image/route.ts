@@ -1,6 +1,7 @@
 import { AIService } from '@/lib/ai-service';
 import { StorageService } from '@/lib/storage';
 import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,7 @@ const corsHeaders = {
 };
 
 export async function OPTIONS() {
-  return Response.json({}, { headers: corsHeaders });
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function POST(req: Request) {
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
     const { image_url, shop_id, visitor_id } = await req.json();
 
     if (!image_url || !shop_id) {
-      return Response.json({ error: 'Missing parameters' }, { status: 400, headers: corsHeaders });
+      return NextResponse.json({ error: 'Missing parameters' }, { status: 400, headers: corsHeaders });
     }
 
     // 1. Проверка хеша для кеширования результатов
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
 
     if (cached) {
       console.log('[Analyze] Using cached result for hash:', hash);
-      return Response.json({
+      return NextResponse.json({
         suitable: cached.suitable,
         reason: cached.reason,
         image_url: cached.storage_url
@@ -70,13 +71,13 @@ export async function POST(req: Request) {
       storage_url: storageUrl
     });
 
-    return Response.json({
+    return NextResponse.json({
       ...analysis,
       image_url: storageUrl
     }, { headers: corsHeaders });
 
   } catch (err: any) {
     console.error('Image analysis error:', err);
-    return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ error: err.message }, { status: 500, headers: corsHeaders });
   }
 }

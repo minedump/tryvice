@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ const corsHeaders = {
 };
 
 export async function OPTIONS() {
-  return Response.json({}, { headers: corsHeaders });
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function POST(req: Request) {
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     const { shop_id, domain } = await req.json();
 
     if (!shop_id) {
-      return Response.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
+      return NextResponse.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
     }
 
     // Получаем данные магазина
@@ -34,27 +35,27 @@ export async function POST(req: Request) {
       .single();
 
     if (error || !shop) {
-      return Response.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
 
     // Проверка домена (обязательно для CORS и безопасности)
     if (!shop.domain) {
-      return Response.json({ error: 'Shop domain not configured' }, { status: 403, headers: corsHeaders });
+      return NextResponse.json({ error: 'Shop domain not configured' }, { status: 403, headers: corsHeaders });
     }
 
     if (domain && !domain.includes(shop.domain.replace('https://', '').replace('http://', ''))) {
-      return Response.json({ error: 'Invalid domain' }, { status: 403, headers: corsHeaders });
+      return NextResponse.json({ error: 'Invalid domain' }, { status: 403, headers: corsHeaders });
     }
 
     // Проверка баланса
     if (shop.remaining_generations <= 0) {
-      return Response.json({ 
+      return NextResponse.json({ 
         active: false, 
         reason: 'Insufficient balance' 
       }, { headers: corsHeaders });
     }
 
-    return Response.json({
+    return NextResponse.json({
       active: true,
       settings: shop.widget_settings,
       shop_name: shop.name
@@ -62,6 +63,6 @@ export async function POST(req: Request) {
 
   } catch (err) {
     console.error('Widget init error:', err);
-    return Response.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders });
   }
 }
