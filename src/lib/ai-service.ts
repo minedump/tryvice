@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const API_KEY = process.env.KODIKROUTER_API_KEY || '';
 const API_URL = process.env.KODIKROUTER_API_URL || 'https://api.kodikrouter.ru/v1/chat/completions';
 const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY || '';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models';
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -107,10 +107,15 @@ export class AIService {
   }
 
   private static async requestGemini(body: any) {
-    const modelName = body.model.includes('/') ? body.model : `models/${body.model}`;
-    const url = `${GEMINI_API_URL}/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+    if (!GEMINI_API_KEY) {
+      throw new Error('GOOGLE_GEMINI_API_KEY is not configured in environment variables');
+    }
+
+    const modelName = body.model.includes('gemini') ? body.model : `gemini-1.5-flash`;
+    const cleanModelName = modelName.split('/').pop(); // Берем только имя модели
+    const url = `${GEMINI_API_URL}/${cleanModelName}:generateContent?key=${GEMINI_API_KEY}`;
     
-    console.log(`[AIService] Sending request to Google Gemini: ${modelName}`);
+    console.log(`[AIService] Requesting Gemini: ${cleanModelName}`);
 
     // Конвертируем формат OpenAI в формат Gemini с поддержкой base64
     const contents = await Promise.all(body.messages.map(async (m: any) => {
