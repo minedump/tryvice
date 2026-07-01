@@ -23,21 +23,23 @@ export async function POST(req: Request) {
     const supabase = getSupabase();
     const { shop_id, domain } = await req.json();
 
+    console.log(`[WidgetInit] URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
     console.log(`[WidgetInit] Request for shop_id: ${shop_id} from domain: ${domain}`);
 
     if (!shop_id) {
       return NextResponse.json({ error: 'Missing shop_id' }, { status: 400, headers: corsHeaders });
     }
 
-    // Получаем данные магазина
-    const { data: shop, error } = await supabase
+    // Получаем данные магазина без .single() для отладки
+    const { data: shops, error } = await supabase
       .from('shops')
       .select('*')
-      .eq('id', shop_id)
-      .single();
+      .eq('id', shop_id.trim());
+
+    const shop = shops && shops.length > 0 ? shops[0] : null;
 
     if (error || !shop) {
-      console.error(`[WidgetInit] Shop not found in DB. ID: ${shop_id}, Error:`, error);
+      console.error(`[WidgetInit] Shop not found. Found ${shops?.length || 0} rows. Error:`, error);
       return NextResponse.json({ error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
 
