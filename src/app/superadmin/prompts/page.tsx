@@ -4,7 +4,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Button from '@/components/Button';
 import Toast from '@/components/Toast';
 import Input from '@/components/Input';
-import Select from '@/components/Select';
+import { IconChevronDown } from '@tabler/icons-react';
 
 export default function PromptsPage() {
   const supabase = createClientComponentClient();
@@ -13,18 +13,35 @@ export default function PromptsPage() {
   const [toast, setToast] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
 
-  const ANALYTIC_MODELS = [
-    'openai/gpt-4o-mini',
-    'openai/gpt-4o',
-    'google/gemini-2.0-flash-exp',
-    'google/gemini-1.5-flash'
-  ];
+  const ANALYTIC_MODELS = {
+    google: [
+      { id: 'models/gemini-2.0-flash', label: 'gemini-2.0-flash [Free]' },
+      { id: 'models/gemini-2.5-flash', label: 'gemini-2.5-flash [Free]' },
+      { id: 'models/gemini-3.1-flash-lite', label: 'gemini-3.1-flash-lite [Free]' },
+      { id: 'models/gemini-3.5-flash', label: 'gemini-3.5-flash [Free]' },
+    ],
+    kodik: [
+      { id: 'openai/gpt-4o-mini', label: 'gpt-4o-mini' },
+      { id: 'openai/gpt-4o', label: 'gpt-4o' },
+    ]
+  };
 
-  const GENERATIVE_MODELS = [
-    'openai/gpt-5-image',
-    'nanobanana',
-    'openai/gpt-4o'
-  ];
+  const GENERATIVE_MODELS = {
+    google: [
+      { id: 'models/imagen-4.0-fast-generate-001', label: 'imagen-4.0-fast [Paid]' },
+      { id: 'models/imagen-4.0-generate-001', label: 'imagen-4.0 [Paid]' },
+      { id: 'models/gemini-3.1-flash-image', label: 'gemini-3.1-flash-image [Paid]' },
+    ],
+    kodik: [
+      { id: 'openai/gpt-4o', label: 'gpt-4o' },
+      { id: 'openai/gpt-4o-mini', label: 'gpt-4o-mini' },
+      { id: 'kolors', label: 'kolors (Try-On)' },
+    ],
+    recraft: [
+      { id: 'recraftv4_1', label: 'Recraft V4.1' },
+      { id: 'recraftv4_1_pro', label: 'Recraft V4.1 Pro' },
+    ]
+  };
 
   useEffect(() => {
     fetchSettings();
@@ -85,9 +102,9 @@ export default function PromptsPage() {
           model={settings.model_generation}
           provider={settings.provider_generation}
           models={GENERATIVE_MODELS}
-          onPromptChange={(val: string) => setSettings({ ...settings, prompt_generation: val })}
-          onModelChange={(val: string) => setSettings({ ...settings, model_generation: val })}
-          onProviderChange={(val: string) => setSettings({ ...settings, provider_generation: val })}
+          onPromptChange={(val: string) => setSettings((prev: any) => ({ ...prev, prompt_generation: val }))}
+          onModelChange={(val: string) => setSettings((prev: any) => ({ ...prev, model_generation: val }))}
+          onProviderChange={(val: string) => setSettings((prev: any) => ({ ...prev, provider_generation: val }))}
           onSave={() => handleSave('generation')}
           isSaving={savingKey === 'generation'}
         />
@@ -98,9 +115,9 @@ export default function PromptsPage() {
           model={settings.model_moderation}
           provider={settings.provider_moderation}
           models={ANALYTIC_MODELS}
-          onPromptChange={(val: string) => setSettings({ ...settings, prompt_moderation: val })}
-          onModelChange={(val: string) => setSettings({ ...settings, model_moderation: val })}
-          onProviderChange={(val: string) => setSettings({ ...settings, provider_moderation: val })}
+          onPromptChange={(val: string) => setSettings((prev: any) => ({ ...prev, prompt_moderation: val }))}
+          onModelChange={(val: string) => setSettings((prev: any) => ({ ...prev, model_moderation: val }))}
+          onProviderChange={(val: string) => setSettings((prev: any) => ({ ...prev, provider_moderation: val }))}
           onSave={() => handleSave('moderation')}
           isSaving={savingKey === 'moderation'}
         />
@@ -111,19 +128,21 @@ export default function PromptsPage() {
           model={settings.model_classification}
           provider={settings.provider_classification}
           models={ANALYTIC_MODELS}
-          onPromptChange={(val: string) => setSettings({ ...settings, prompt_classification: val })}
-          onModelChange={(val: string) => setSettings({ ...settings, model_classification: val })}
-          onProviderChange={(val: string) => setSettings({ ...settings, provider_classification: val })}
+          onPromptChange={(val: string) => setSettings((prev: any) => ({ ...prev, prompt_classification: val }))}
+          onModelChange={(val: string) => setSettings((prev: any) => ({ ...prev, model_classification: val }))}
+          onProviderChange={(val: string) => setSettings((prev: any) => ({ ...prev, provider_classification: val }))}
           onSave={() => handleSave('classification')}
           isSaving={savingKey === 'classification'}
-        />
-      </div>
+        />      </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }
 
 function PromptBlock({ title, prompt, model, provider, models, onPromptChange, onModelChange, onProviderChange, onSave, isSaving }: any) {
+  const availableModels = models[provider] || [];
+  const selectStyles = "w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-black transition-all cursor-pointer appearance-none";
+
   return (
     <div className="bg-white border border-zinc-200 p-8 rounded-2xl shadow-sm">
       <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 border-b pb-4 mb-6">{title}</h3>
@@ -132,24 +151,46 @@ function PromptBlock({ title, prompt, model, provider, models, onPromptChange, o
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-1">
             <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Провайдер</label>
-            <Select 
-              options={['kodik', 'google']}
+            <div className="relative">
+            <select 
+              className={selectStyles}
               value={provider}
-              onChange={(e) => onProviderChange(e.target.value)}
-            />
+              onChange={(e) => {
+                const newProvider = e.target.value;
+                // Обновляем провайдера
+                onProviderChange(newProvider);
+                
+                // Находим первую модель для этого провайдера и обновляем её
+                const firstModel = models[newProvider]?.[0]?.id;
+                if (firstModel) {
+                  onModelChange(firstModel);
+                }
+              }}
+            >
+              <option value="kodik">KodikRouter</option>
+              <option value="google">Google Gemini</option>
+              <option value="recraft">Recraft AI</option>
+            </select>              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-zinc-400">
+                <IconChevronDown size={16} />
+              </div>
+            </div>
           </div>
           <div className="space-y-1">
-            <Input 
-              label="Используемая модель"
-              list={`models-${title}`} 
-              value={model}
-              onChange={(e) => onModelChange(e.target.value)}
-              placeholder="Например: openai/gpt-4o"
-              tooltip="Выберите модель из списка или введите название вручную. Модели должны быть доступны у выбранного провайдера."
-            />
-            <datalist id={`models-${title}`}>
-              {models.map((m: string) => <option key={m} value={m} />)}
-            </datalist>
+            <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Используемая модель</label>
+            <div className="relative">
+              <select 
+                className={selectStyles}
+                value={model}
+                onChange={(e) => onModelChange(e.target.value)}
+              >
+                {availableModels.map((m: any) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-zinc-400">
+                <IconChevronDown size={16} />
+              </div>
+            </div>
           </div>
         </div>
         

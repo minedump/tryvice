@@ -6,6 +6,8 @@ const API_KEY = process.env.KODIKROUTER_API_KEY || '';
 const API_URL = process.env.KODIKROUTER_API_URL || 'https://api.kodikrouter.ru/v1/chat/completions';
 const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models';
+const RECRAFT_API_KEY = process.env.RECRAFT_API_KEY || '';
+const RECRAFT_API_URL = 'https://external.api.recraft.ai/v1';
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,12 +36,16 @@ export class AIService {
     return data;
   }
 
-  public static async request(body: any, provider: 'kodik' | 'google' = 'kodik') {
+  public static async request(body: any, provider: 'kodik' | 'google' | 'recraft' = 'kodik') {
     if (provider === 'google') {
       if (body.model.includes('imagen')) {
         return this.requestImagen(body);
       }
       return this.requestGemini(body);
+    }
+
+    if (provider === 'recraft') {
+      return this.requestRecraft(body);
     }
 
     console.log(`[AIService] Sending request to KodikRouter: ${API_URL}`);
@@ -60,6 +66,58 @@ export class AIService {
     }
 
     return response.json();
+  }
+
+  private static async requestRecraft(body: any) {
+    if (!RECRAFT_API_KEY) throw new Error('RECRAFT_API_KEY is not configured');
+
+    console.log(`[AIService] Sending request to Recraft AI: ${body.model}`);
+
+    // Для Try-On используем Image-to-Image
+    const url = `${RECRAFT_API_URL}/images/imageToImage`;
+    
+    const formData = new FormData();
+    formData.append('model', body.model || 'recraftv4_1');
+    
+    // Извлекаем промпт
+    const prompt = body.messages.map((m: any) => 
+      Array.isArray(m.content) ? m.content.map((c: any) => c.text || '').join(' ') : m.content
+    ).join('\n');
+    formData.append('prompt', prompt);
+    formData.append('strength', '0.5'); // Дефолтное значение для примерки
+
+    // Находим изображение пользователя (первое в списке)
+    const userImagePart = body.messages.find((m: any) => 
+      Array.isArray(m.content) && m.content.some((c: any) => c.type === 'image_url')
+    )?.content.find((c: any) => c.type === 'image_url');
+
+    if (userImagePart) {
+      const response = await fetch(userImagePart.image_url.url);
+      const blob = await response.blob();
+      formData.append('image', blob, 'user_photo.jpg');
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RECRAFT_API_KEY}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Recraft API Error: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return {
+      choices: [{
+        message: {
+          content: data.data[0].url
+        }
+      }]
+    };
   }
 
   private static async requestImagen(body: any) {
