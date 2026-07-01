@@ -63,11 +63,10 @@ export class AIService {
   }
 
   private static async requestImagen(body: any) {
-    const model = body.model.replace('google/', '');
-    // Imagen использует эндпоинт predict
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${GEMINI_API_KEY}`;
+    const modelName = body.model.includes('/') ? body.model : `models/${body.model}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:predict?key=${GEMINI_API_KEY}`;
     
-    console.log(`[AIService] Generating image via Google Imagen: ${model}`);
+    console.log(`[AIService] Request URL: ${url.replace(GEMINI_API_KEY, '***')}`);
 
     // Извлекаем текст промпта из сообщений
     const prompt = body.messages.map((m: any) => 
