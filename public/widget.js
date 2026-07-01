@@ -1,5 +1,6 @@
 (function() {
-  const API_BASE = window.location.origin + '/api/widget';
+  const scriptSrc = document.currentScript ? document.currentScript.src : '';
+  const API_BASE = (scriptSrc ? new URL(scriptSrc).origin : '') + '/api/widget';
 
   class TryViceWidget extends HTMLElement {
     constructor() {
@@ -34,6 +35,9 @@
       try {
         const res = await fetch(`${API_BASE}/init`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ shop_id: shopId, domain: window.location.hostname })
         });
         const data = await res.json();
